@@ -1,42 +1,109 @@
+/* src/components/Sidebar/Sidebar.css */
+
+/* ==========================================================================
+   ОБЩАЯ СТРУКТУРА ЛЕВОГО САЙДБАРА
+   ========================================================================== */
+
+.left-sidebar > .panel {
+    /* Делим пространство 50/50 между панелью слайдов и панелью свойств */
+    flex: 1;
+    min-height: 0; /* Техническое свойство для корректной работы overflow */
+}
+
 .panel {
     background-color: #252526;
     border-radius: 8px;
-    padding: 15px;
+    /* Уменьшаем вертикальные отступы, чтобы убрать лишнее пространство */
+    padding: 5px 15px;
+    box-sizing: border-box;
 }
+
+
+/* ==========================================================================
+   ПАНЕЛЬ СЛАЙДОВ (SlidesPanel)
+   ========================================================================== */
+
+/* Делаем панель flex-контейнером, чтобы список мог растянуться */
+.left-sidebar > .panel:first-child {
+    display: flex;
+    flex-direction: column;
+}
+
 .panel-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* <-- ИЗМЕНЯЕМ НА ЭТО */
+    gap: 130px;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
+    padding: 0 0 0px 10px;
+    flex-shrink: 0; /* Запрещаем шапке сжиматься */
 }
+
+.add-btn {
+    background-color: #0e639c;
+    color: white;
+    width: 28px; height: 28px; font-size: 22px;
+
+}
+
+.delete-btn {
+    background-color: #9c2727;
+    color: white;
+    width: 28px; height: 28px; font-size: 22px;
+}
+
 .add-btn, .delete-btn {
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-.add-btn {
-    background-color: #0e639c;
-    color: white;
-    width: 24px; height: 24px; font-size: 16px;
-}
-.delete-btn {
-    background-color: #9c2727;
-    color: white;
-    width: 20px; height: 20px; font-size: 14px;
-}
+
 .slides-list {
-    list-style: none; padding: 0; margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Занимает все доступное место */
+    overflow-y: auto; /* Включаем прокрутку */
+    /*padding-right: 5px; !* Добавляем "воздуха" справа *!*/
 }
+
 .slide-item {
     background-color: #3e3e42;
     padding: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: pointer;
 }
+.slide-item:hover {
+    background-color: #555;
+}
+.slide-item.active {
+    /*border: 2px solid #3f7195;*/
+    background-color: #4b6373;
+}
+
+
+/* ==========================================================================
+   ПАНЕЛЬ СВОЙСТВ (PropertiesPanel)
+   ========================================================================== */
+
+.properties-panel {
+    overflow-y: auto; /* Включаем прокрутку */
+    padding-right: 10px; /* Добавляем "воздуха" справа */
+}
+
+.properties-panel h3 {
+    margin-top: 10px;
+    margin-bottom: 10px; /* Увеличим отступ после заголовка для читаемости */
+}
+
 .properties-panel .prop-item {
     display: flex;
     justify-content: space-between;
@@ -44,17 +111,22 @@
     margin-bottom: 10px;
     font-size: 14px;
 }
+.properties-panel .prop-item:last-child {
+    margin-bottom: 0;
+}
+
 .properties-panel input {
     background-color: #3e3e42;
     color: white;
     border: 1px solid #666;
     border-radius: 4px;
     padding: 5px;
+    box-sizing: border-box;
 }
 .properties-panel input[type="number"] { width: 60px; }
-.properties-panel input[type="text"] { width: 100px; }
+.properties-panel input[type="text"] { width: 100%; }
 .properties-panel input[type="color"] {
-    padding: 2px; width: 40px; height: 28px; border: none;
+    padding: 3px; width: 40px; height: 40px; border: none;
 }
 
 .properties-panel .prop-group {
@@ -62,16 +134,58 @@
     padding-top: 10px;
     margin-top: 10px;
 }
+
 .properties-panel .prop-item.wide {
     flex-direction: column;
     align-items: flex-start;
     gap: 5px;
 }
-.properties-panel .prop-item.wide input {
+
+/* Стили для кнопок управления слоями */
+.properties-panel .prop-group-buttons {
+    display: flex;
+    gap: 10px;
+}
+.properties-panel .prop-group-buttons button {
     width: 100%;
+    background-color: #555;
+    border: 1px solid #666;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.properties-panel .prop-group-buttons button:hover {
+    background-color: #6e6e70;
 }
 
-.slide-item.active {
-    border: 2px solid #007acc;
-    background-color: #094771;
+/* Стиль для кнопки удаления объекта */
+.delete-button {
+    width: 100%;
+    background-color: #b83333;
+    border: 1px solid #c75656;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-weight: bold;
+}
+.delete-button:hover {
+    background-color: #d34040;
+}
+
+
+/* ==========================================================================
+   СКРЫТИЕ СКРОЛЛБАРА (для обеих панелей)
+   ========================================================================== */
+
+.slides-list,
+.properties-panel {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.slides-list::-webkit-scrollbar,
+.properties-panel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }

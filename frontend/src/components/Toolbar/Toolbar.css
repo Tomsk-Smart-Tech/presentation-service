@@ -1,3 +1,4 @@
+/* src/components/Toolbar/Toolbar.css */
 .top-toolbar {
     width: 100%;
     display: flex;
@@ -13,7 +14,12 @@
     display: flex;
     gap: 10px;
 }
-.shape-buttons button, .play-btn {
+
+/* --- ОБЩИЙ СТИЛЬ ДЛЯ ВСЕХ КНОПОК В ТУЛБАРЕ --- */
+.shape-buttons button,
+.play-btn,
+.settings-btn,
+.export-btn {
     background: #555;
     border: 1px solid #666;
     color: white;
@@ -25,10 +31,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 0; /* Убираем внутренние отступы, чтобы SVG занимал все место */
 }
-.shape-buttons button:hover, .play-btn:hover {
+
+.shape-buttons button:hover,
+.play-btn:hover,
+.settings-btn:hover,
+.export-btn:hover {
     background: #6e6e70;
 }
+
+/* --- ПОЗИЦИОНИРОВАНИЕ КНОПОК СПРАВА --- */
 .play-btn {
     position: absolute;
     right: 0;
@@ -36,11 +49,13 @@
 
 .settings-btn {
     position: absolute;
-    right: 50px; /* Сдвигаем, чтобы не мешать кнопке Play */
-    font-size: 24px;
+    right: 50px; /* Сдвигаем левее */
 }
 
-.shape-buttons button, .play-btn, .settings-btn {
-    /* ... */
-    font-size: 20px; /* Уменьшим размер, чтобы иконка влезла */
+/* --- НОВЫЙ СТИЛЬ ДЛЯ КНОПКИ ЭКСПОРТА --- */
+.export-btn {
+    position: absolute;
+    right: 100px; /* Ставим левее настроек */
+    font-weight: bold;
+    font-size: 14px;
 }
