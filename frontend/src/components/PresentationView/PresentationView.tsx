@@ -1,21 +1,50 @@
 // src/components/PresentationView/PresentationView.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Stage, Layer, Rect, Ellipse, RegularPolygon, Text, Group } from 'react-konva';
-import { Slide, Shape, ImageShape, TextShape } from '../../types';
+import { Slide, Shape } from '../../types';
 import './PresentationView.css';
 import { URLImage } from '../Canvas/URLImage';
+
+const LOGICAL_WIDTH = 1280;
 
 interface PresentationViewProps {
     slides: Slide[];
     onClose: () => void;
+    aspectRatio: string;
 }
 
-export const PresentationView = ({ slides, onClose }: PresentationViewProps) => {
+// Вспомогательный хук для отслеживания размера окна
+const useWindowSize = () => {
+    const [size, setSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
+    useEffect(() => {
+        const handleResize = () => {
+            setSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    return size;
+};
+
+
+export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationViewProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const activeSlide = slides[currentIndex];
+    const windowSize = useWindowSize();
 
-    const goToNext = () => setCurrentIndex((prev) => Math.min(prev + 1, slides.length - 1));
-    const goToPrev = () => setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    const goToNext = useCallback(() => {
+        setCurrentIndex((prev) => Math.min(prev + 1, slides.length - 1));
+    }, [slides.length]);
+
+    const goToPrev = useCallback(() => {
+        setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -25,55 +54,44 @@ export const PresentationView = ({ slides, onClose }: PresentationViewProps) => 
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [goToNext, goToPrev, onClose]); // Добавлены зависимости для чистоты кода
+    }, [goToNext, goToPrev, onClose]);
 
     const slideSize = useMemo(() => {
-        const BASE_WIDTH = 1280; // Базовая ширина холста в редакторе
-        const BASE_HEIGHT = 720; // Базовая высота
-        const ratio = BASE_WIDTH / BASE_HEIGHT;
-        let width = window.innerWidth;
-        let height = window.innerWidth / ratio;
-        if (height > window.innerHeight) {
-            height = window.innerHeight;
-            width = window.innerHeight * ratio;
+        const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
+        const targetRatio = ratioW / ratioH;
+
+        let width = windowSize.width;
+        let height = width / targetRatio;
+
+        if (height > windowSize.height) {
+            height = windowSize.height;
+            width = height * targetRatio;
         }
         return { width, height };
-    }, []);
+    }, [windowSize, aspectRatio]);
 
-    // Коэффициент масштабирования всей сцены
-    const scale = slideSize.width / 1280;
+    const scale = slideSize.width / LOGICAL_WIDTH;
 
     return (
         <div className="presentation-overlay">
-            <Stage width={window.innerWidth} height={window.innerHeight}>
+            <Stage width={windowSize.width} height={windowSize.height}>
                 <Layer>
-                    <Rect x={0} y={0} width={window.innerWidth} height={window.innerHeight} fill="black" />
-
-                    {/* Эта группа центрирует наш слайд на экране */}
-                    <Group
-                        x={(window.innerWidth - slideSize.width) / 2}
-                        y={(window.innerHeight - slideSize.height) / 2}
-                    >
+                    <Rect x={0} y={0} width={windowSize.width} height={windowSize.height} fill="black" />
+                    <Group x={(windowSize.width - slideSize.width) / 2} y={(windowSize.height - slideSize.height) / 2}>
                         <Rect width={slideSize.width} height={slideSize.height} fill="white" />
-
-                        {/* FIX: Эта вложенная группа МАСШТАБИРУЕТ все фигуры разом */}
                         <Group scaleX={scale} scaleY={scale}>
                             {activeSlide.shapes.map((shape: Shape) => {
-                                // ВАЖНО: Мы больше не масштабируем пропсы вручную!
-                                // Передаем оригинальные значения из состояния.
                                 const commonProps = { ...shape, draggable: false };
-
                                 switch (shape.type) {
                                     case 'rect': return <Rect key={shape.id} {...commonProps} />;
                                     case 'circle': return <Ellipse key={shape.id} {...commonProps} radiusX={shape.width / 2} radiusY={shape.height / 2} />;
                                     case 'triangle': return <RegularPolygon key={shape.id} {...commonProps} sides={3} radius={shape.height / 2} scaleX={shape.width / shape.height} />;
                                     case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" />;
-                                    case 'image': return <URLImage key={shape.id} shape={shape as ImageShape} {...commonProps} />;
+                                    case 'image': return <URLImage key={shape.id} shape={shape} {...commonProps} />;
                                     default: return null;
                                 }
                             })}
                         </Group>
-
                     </Group>
                 </Layer>
             </Stage>

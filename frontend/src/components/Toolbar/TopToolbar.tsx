@@ -4,7 +4,6 @@ import './Toolbar.css';
 
 interface TopToolbarProps {
     onAddShape: (type: 'rect' | 'circle' | 'triangle' | 'text') => void;
-    // NEW: Новая функция для добавления изображения
     onAddImage: (src: string, width: number, height: number) => void;
     onOpenSettings: () => void;
     onStartPresentation: () => void;
@@ -21,22 +20,11 @@ export const TopToolbar = ({ onAddShape, onAddImage, onOpenSettings, onStartPres
         reader.onload = () => {
             const src = reader.result as string;
             const img = new window.Image();
-            img.onload = () => {
-                // Задаем начальный разумный размер
-                const MAX_WIDTH = 300;
-                const scale = MAX_WIDTH / img.width;
-                const width = img.width * scale;
-                const height = img.height * scale;
-                onAddImage(src, width, height);
-            };
+            img.onload = () => { onAddImage(src, img.width, img.height); };
             img.src = src;
         };
         reader.readAsDataURL(file);
-
-        // Сбрасываем значение инпута, чтобы можно было загрузить тот же файл снова
-        if(fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+        if(fileInputRef.current) { fileInputRef.current.value = ""; }
     };
 
     return (
@@ -46,19 +34,9 @@ export const TopToolbar = ({ onAddShape, onAddImage, onOpenSettings, onStartPres
                 <button onClick={() => onAddShape('circle')}>○</button>
                 <button onClick={() => onAddShape('triangle')}>△</button>
                 <button onClick={() => onAddShape('text')}>T</button>
-                {/* NEW: Кнопка для добавления изображения */}
                 <button onClick={() => fileInputRef.current?.click()}>🖼️</button>
             </div>
-
-            {/* NEW: Скрытый инпут для выбора файла */}
-            <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept="image/*"
-                onChange={handleFileChange}
-            />
-
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
             <button className="settings-btn" onClick={onOpenSettings}>⚙️</button>
             <button className="play-btn" onClick={onStartPresentation}>▶</button>
         </div>

@@ -2,9 +2,11 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Stage, Layer, Rect, Text, Transformer, Ellipse, RegularPolygon, Group } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { Shape, TextShape, ImageShape } from '../../types';
+import { Shape } from '../../types';
 import Konva from 'konva';
 import { URLImage } from './URLImage';
+
+const LOGICAL_WIDTH = 1280;
 
 interface PresentationCanvasProps {
     shapes: Shape[];
@@ -63,34 +65,47 @@ export const PresentationCanvas = ({ shapes, selectedId, onSelect, onUpdate, asp
         }
     };
 
+    const scale = slideProps.width / LOGICAL_WIDTH;
+
     return (
         <div className="canvas-container" ref={containerRef}>
             <Stage ref={stageRef} width={size.width} height={size.height} onMouseDown={checkDeselect} onTouchStart={checkDeselect}>
                 <Layer>
                     <Rect {...slideProps} fill="white" cornerRadius={8} name="slide-background" />
-                    <Group x={slideProps.x} y={slideProps.y}>
+                    <Group x={slideProps.x} y={slideProps.y} scaleX={scale} scaleY={scale}>
                         {shapes.map((shape) => {
-                            const commonProps = { ...shape, draggable: true, onClick: () => onSelect(shape.id), onTap: () => onSelect(shape.id) };
+                            const commonProps = {
+                                ...shape,
+                                draggable: true,
+                                onClick: () => onSelect(shape.id),
+                                onTap: () => onSelect(shape.id),
+                                onDragEnd: (e: KonvaEventObject<DragEvent>) => {
+                                    onUpdate(shape.id, {
+                                        x: e.target.x(),
+                                        y: e.target.y(),
+                                    });
+                                },
+                            };
                             switch (shape.type) {
                                 case 'rect': return <Rect key={shape.id} {...commonProps} />;
                                 case 'circle': return <Ellipse key={shape.id} {...commonProps} radiusX={shape.width / 2} radiusY={shape.height / 2} />;
                                 case 'triangle': return <RegularPolygon key={shape.id} {...commonProps} sides={3} radius={shape.height / 2} scaleX={shape.width / shape.height} />;
                                 case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" />;
-                                case 'image': return <URLImage key={shape.id} shape={shape as ImageShape} {...commonProps} />;
+                                case 'image': return <URLImage key={shape.id} shape={shape} {...commonProps} />;
                                 default: return null;
                             }
                         })}
-                        <Transformer ref={trRef} keepRatio={false} boundBoxFunc={(oldBox, newBox) => (newBox.width < 5 || newBox.height < 5 ? oldBox : newBox)}
-                                     onTransformEnd={() => {
-                                         const node = trRef.current?.nodes()[0];
-                                         if (!node) return;
-                                         const scaleX = node.scaleX(); const scaleY = node.scaleY();
-                                         node.scaleX(1); node.scaleY(1);
-                                         onUpdate(node.id(), {
-                                             x: node.x(), y: node.y(), rotation: node.rotation(),
-                                             width: node.width() * scaleX, height: node.height() * scaleY,
-                                         });
-                                     }}
+                        <Transformer
+                            ref={trRef} keepRatio={false} boundBoxFunc={(oldBox, newBox) => (newBox.width < 5 || newBox.height < 5 ? oldBox : newBox)}
+                            onTransformEnd={() => {
+                                const node = trRef.current?.nodes()[0];
+                                if (!node) return;
+                                onUpdate(node.id(), {
+                                    x: node.x(), y: node.y(), rotation: node.rotation(),
+                                    width: node.width() * node.scaleX(), height: node.height() * node.scaleY(),
+                                });
+                                node.scaleX(1); node.scaleY(1);
+                            }}
                         />
                     </Group>
                 </Layer>

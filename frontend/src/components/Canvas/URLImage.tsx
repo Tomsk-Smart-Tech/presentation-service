@@ -5,7 +5,6 @@ import { ImageShape } from '../../types';
 
 interface URLImageProps {
     shape: ImageShape;
-    // Позволяет передавать любые другие пропсы (draggable, onClick, и т.д.)
     [key: string]: any;
 }
 
@@ -16,9 +15,7 @@ export const URLImage = ({ shape, ...restProps }: URLImageProps) => {
         const img = new window.Image();
         img.src = shape.src;
         img.crossOrigin = 'Anonymous';
-        img.onload = () => {
-            setImage(img);
-        };
+        img.onload = () => setImage(img);
     }, [shape.src]);
 
     return <KonvaImage image={image} {...shape} {...restProps} />;
