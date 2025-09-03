@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # CMAKE_ARGS - это флаги, которые передаются системе сборки cmake во время установки.
 # -DLLAMA_CUBLAS=on - это "волшебный" флаг, который включает компиляцию с поддержкой NVIDIA GPU.
 # --no-cache-dir - хорошая практика, чтобы не засорять образ кэшем pip.
-RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install --upgrade --no-cache-dir llama-cpp-python
+RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install --upgrade --no-cache-dir llama-cpp-python
 
 # Команда, которая будет выполняться при запуске контейнера, уже задана в базовом образе,
 # поэтому нам не нужно ее здесь указывать. Мы переопределим ее в docker-compose.yml.
