@@ -1,0 +1,78 @@
+/* src/components/Settings/SettingsModal.css */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #2d2d30;
+    padding: 20px 30px;
+    border-radius: 8px;
+    width: 400px;
+    color: white;
+    border: 1px solid #555;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.setting-group {
+    margin-top: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.button-group button {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #555;
+    background-color: #3e3e42;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.button-group button:hover {
+    background-color: #555;
+}
+
+.button-group button.active {
+    background-color: #007acc;
+    border-color: #007acc;
+}
+
+.close-button {
+    width: 100%;
+    margin-top: 30px;
+    padding: 12px;
+    background-color: #555;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.close-button:hover {
+    background-color: #6e6e70;
+}

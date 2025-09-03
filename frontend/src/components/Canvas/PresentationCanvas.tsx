@@ -1,136 +1,98 @@
-import React, { useRef, useEffect } from 'react';
-import { Stage, Layer, Rect, Text, Transformer } from 'react-konva';
+// src/components/Canvas/PresentationCanvas.tsx
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { Stage, Layer, Rect, Text, Transformer, Ellipse, RegularPolygon, Group } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { Shape, RectShape, TextShape } from './shapes';
+import { Shape, TextShape, ImageShape } from '../../types';
 import Konva from 'konva';
+import { URLImage } from './URLImage';
 
 interface PresentationCanvasProps {
     shapes: Shape[];
     selectedId: string | null;
     onSelect: (id: string | null) => void;
     onUpdate: (id: string, newAttrs: Partial<Shape>) => void;
+    aspectRatio: string;
 }
 
-export const PresentationCanvas = ({
-                                       shapes,
-                                       selectedId,
-                                       onSelect,
-                                       onUpdate,
-                                   }: PresentationCanvasProps) => {
+export const PresentationCanvas = ({ shapes, selectedId, onSelect, onUpdate, aspectRatio }: PresentationCanvasProps) => {
     const stageRef = useRef<Konva.Stage>(null);
     const trRef = useRef<Konva.Transformer>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [size, setSize] = useState({ width: 0, height: 0 });
 
     useEffect(() => {
-        if (!trRef.current) {
-            return;
-        }
+        const container = containerRef.current;
+        if (!container) return;
+        const observer = new ResizeObserver(() => {
+            setSize({ width: container.clientWidth, height: container.clientHeight });
+        });
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
 
-        const stage = stageRef.current;
-        if (!stage) {
-            return;
+    const slideProps = useMemo(() => {
+        const PADDING = 40;
+        const containerWidth = size.width - PADDING;
+        const containerHeight = size.height - PADDING;
+        if (containerWidth <= 0 || containerHeight <= 0) return { width: 0, height: 0, x: 0, y: 0 };
+        const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
+        const targetRatio = ratioW / ratioH;
+        let slideWidth = containerWidth;
+        let slideHeight = containerWidth / targetRatio;
+        if (slideHeight > containerHeight) {
+            slideHeight = containerHeight;
+            slideWidth = containerHeight * targetRatio;
         }
+        return { width: slideWidth, height: slideHeight, x: (size.width - slideWidth) / 2, y: (size.height - slideHeight) / 2 };
+    }, [size.width, size.height, aspectRatio]);
 
+    useEffect(() => {
+        if (!trRef.current || !stageRef.current) return;
         if (selectedId) {
-            const selectedNode = stage.findOne('#' + selectedId);
-
-            if (selectedNode) {
-                console.log('DEBUG: Нашел узел для трансформации:', selectedNode);
-                trRef.current.nodes([selectedNode]);
-            } else {
-                console.log('DEBUG: НЕ нашел узел с ID:', selectedId);
-                trRef.current.nodes([]);
-            }
+            const selectedNode = stageRef.current.findOne('#' + selectedId);
+            trRef.current.nodes(selectedNode ? [selectedNode] : []);
         } else {
             trRef.current.nodes([]);
         }
-    }, [selectedId]);
+    }, [selectedId, shapes]);
 
     const checkDeselect = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-        const clickedOnEmpty = e.target === e.target.getStage() || e.target.attrs.fill === 'white';
+        const clickedOnEmpty = e.target.name() === 'slide-background' || e.target === e.target.getStage();
         if (clickedOnEmpty) {
             onSelect(null);
         }
     };
 
     return (
-        <div className="canvas-container">
-            <Stage
-                ref={stageRef}
-                width={window.innerWidth - 590}
-                height={window.innerHeight - 80}
-                onMouseDown={checkDeselect}
-                onTouchStart={checkDeselect}
-            >
+        <div className="canvas-container" ref={containerRef}>
+            <Stage ref={stageRef} width={size.width} height={size.height} onMouseDown={checkDeselect} onTouchStart={checkDeselect}>
                 <Layer>
-                    <Rect
-                        x={20}
-                        y={20}
-                        width={window.innerWidth - 630}
-                        height={window.innerHeight - 120}
-                        fill="white"
-                        cornerRadius={10}
-                    />
-
-                    {shapes.map((shape) => {
-                        const commonProps = {
-                            key: shape.id,
-                            id: shape.id,
-                            x: shape.x,
-                            y: shape.y,
-                            fill: shape.fill,
-                            draggable: true,
-                            onClick: () => {
-                                console.log('DEBUG: Клик по фигуре ID:', shape.id);
-                                onSelect(shape.id);
-                            },
-                            onTap: () => {
-                                console.log('DEBUG: Тап по фигуре ID:', shape.id);
-                                onSelect(shape.id);
-                            },
-                            onDragEnd: (e: KonvaEventObject<DragEvent>) => {
-                                onUpdate(shape.id, { x: e.target.x(), y: e.target.y() });
-                            },
-                            onTransformEnd: (e: KonvaEventObject<Event>) => {
-                                const node = e.target;
-                                const scaleX = node.scaleX();
-                                const scaleY = node.scaleY();
-                                node.scaleX(1);
-                                node.scaleY(1);
-
-                                let newAttrs: Partial<Shape> = {};
-                                if (shape.type === 'rect') {
-                                    newAttrs = {
-                                        x: node.x(),
-                                        y: node.y(),
-                                        width: Math.max(5, node.width() * scaleX),
-                                        height: Math.max(5, node.height() * scaleY),
-                                    };
-                                }
-                                if (shape.type === 'text') {
-                                    newAttrs = {
-                                        x: node.x(),
-                                        y: node.y(),
-                                        fontSize: Math.round((shape as TextShape).fontSize * scaleX)
-                                    };
-                                }
-
-                                console.log('DEBUG: Трансформация завершена. Новые атрибуты:', newAttrs);
-                                onUpdate(shape.id, newAttrs);
-                            },
-                        };
-
-                        if (shape.type === 'rect') {
-                            const rectShape = shape as RectShape;
-                            return <Rect {...commonProps} width={rectShape.width} height={rectShape.height} />;
-                        }
-
-                        if (shape.type === 'text') {
-                            const textShape = shape as TextShape;
-                            return <Text {...commonProps} text={textShape.text} fontSize={textShape.fontSize} fontFamily={textShape.fontFamily} />;
-                        }
-                        return null;
-                    })}
-                    <Transformer ref={trRef} />
+                    <Rect {...slideProps} fill="white" cornerRadius={8} name="slide-background" />
+                    <Group x={slideProps.x} y={slideProps.y}>
+                        {shapes.map((shape) => {
+                            const commonProps = { ...shape, draggable: true, onClick: () => onSelect(shape.id), onTap: () => onSelect(shape.id) };
+                            switch (shape.type) {
+                                case 'rect': return <Rect key={shape.id} {...commonProps} />;
+                                case 'circle': return <Ellipse key={shape.id} {...commonProps} radiusX={shape.width / 2} radiusY={shape.height / 2} />;
+                                case 'triangle': return <RegularPolygon key={shape.id} {...commonProps} sides={3} radius={shape.height / 2} scaleX={shape.width / shape.height} />;
+                                case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" />;
+                                case 'image': return <URLImage key={shape.id} shape={shape as ImageShape} {...commonProps} />;
+                                default: return null;
+                            }
+                        })}
+                        <Transformer ref={trRef} keepRatio={false} boundBoxFunc={(oldBox, newBox) => (newBox.width < 5 || newBox.height < 5 ? oldBox : newBox)}
+                                     onTransformEnd={() => {
+                                         const node = trRef.current?.nodes()[0];
+                                         if (!node) return;
+                                         const scaleX = node.scaleX(); const scaleY = node.scaleY();
+                                         node.scaleX(1); node.scaleY(1);
+                                         onUpdate(node.id(), {
+                                             x: node.x(), y: node.y(), rotation: node.rotation(),
+                                             width: node.width() * scaleX, height: node.height() * scaleY,
+                                         });
+                                     }}
+                        />
+                    </Group>
                 </Layer>
             </Stage>
         </div>

@@ -1,20 +1,40 @@
+// src/components/Sidebar/SlidesPanel.tsx
 import React from 'react';
 import './Sidebar.css';
+import { Slide } from '../../types';
 
-export const SlidesPanel = () => {
-    const slides = ['Слайд 1', 'Слайд 2', 'Слайд 3']; // Временные данные
+interface SlidesPanelProps {
+    slides: Slide[];
+    activeIndex: number;
+    onSelectSlide: (index: number) => void;
+    onAddSlide: () => void;
+    onDeleteSlide: (id: string) => void;
+}
 
+export const SlidesPanel = ({ slides, activeIndex, onSelectSlide, onAddSlide, onDeleteSlide }: SlidesPanelProps) => {
     return (
         <div className="panel">
             <div className="panel-header">
                 <h3>Слайды</h3>
-                <button className="add-btn">+</button>
+                <button className="add-btn" onClick={onAddSlide}>+</button>
             </div>
             <ul className="slides-list">
                 {slides.map((slide, index) => (
-                    <li key={index} className="slide-item">
-                        {slide}
-                        <button className="delete-btn">-</button>
+                    <li
+                        key={slide.id}
+                        className={`slide-item ${index === activeIndex ? 'active' : ''}`}
+                        onClick={() => onSelectSlide(index)}
+                    >
+                        Слайд {index + 1}
+                        <button
+                            className="delete-btn"
+                            onClick={(e) => {
+                                e.stopPropagation(); // Предотвращаем выбор слайда при удалении
+                                onDeleteSlide(slide.id);
+                            }}
+                        >
+                            -
+                        </button>
                     </li>
                 ))}
             </ul>

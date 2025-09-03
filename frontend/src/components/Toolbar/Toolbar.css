@@ -1,35 +1,46 @@
 .top-toolbar {
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 20px;
     position: relative;
 }
-
 .shape-buttons {
-    background-color: #444;
-    padding: 8px;
+    background-color: #3e3e42;
+    padding: 5px;
     border-radius: 8px;
     display: flex;
     gap: 10px;
 }
-
 .shape-buttons button, .play-btn {
     background: #555;
-    border: 0px solid #666;
+    border: 1px solid #666;
     color: white;
     width: 40px;
     height: 40px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 24px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
 .shape-buttons button:hover, .play-btn:hover {
-    background: #666;
+    background: #6e6e70;
 }
-
 .play-btn {
     position: absolute;
     right: 0;
+}
+
+.settings-btn {
+    position: absolute;
+    right: 50px; /* Сдвигаем, чтобы не мешать кнопке Play */
+    font-size: 24px;
+}
+
+.shape-buttons button, .play-btn, .settings-btn {
+    /* ... */
+    font-size: 20px; /* Уменьшим размер, чтобы иконка влезла */
 }

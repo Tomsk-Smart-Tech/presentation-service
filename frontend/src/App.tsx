@@ -1,80 +1,115 @@
+// src/App.tsx
 import React, { useState } from 'react';
 import './App.css';
-import { v4 as uuidv4 } from 'uuid'; // Импортируем генератор ID
-
+import { v4 as uuidv4 } from 'uuid';
 import { SlidesPanel } from './components/Sidebar/SlidesPanel';
 import { PropertiesPanel } from './components/Sidebar/PropertiesPanel';
 import { TopToolbar } from './components/Toolbar/TopToolbar';
 import { PresentationCanvas } from './components/Canvas/PresentationCanvas';
 import { ChatPanel } from './components/Chat/ChatPanel';
-import { Shape } from './components/Canvas/shapes'; // Импортируем наш тип
+import { SettingsModal } from './components/Settings/SettingsModal';
+import { PresentationView } from './components/PresentationView/PresentationView';
+import { Shape, Slide, ImageShape } from './types';
 
 function App() {
-  // Состояние для всех фигур на холсте
-  const [shapes, setShapes] = useState<Shape[]>([]);
-  // Состояние для ID выбранной фигуры
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [slides, setSlides] = useState<Slide[]>([{ id: uuidv4(), shapes: [] }]);
+    const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [slideAspectRatio, setSlideAspectRatio] = useState('16:9');
+    const [isPresenting, setIsPresenting] = useState(false);
 
-  const handleAddShape = (type: 'rect' | 'text') => {
-    let newShape;
-    const commonProps = { id: uuidv4(), x: 50, y: 50, fill: '#ff8a65' };
+    const activeSlide = slides[activeSlideIndex];
+    const selectedShape = activeSlide?.shapes.find((shape) => shape.id === selectedId);
 
-    if (type === 'rect') {
-      newShape = {
-        ...commonProps,
-        type: 'rect',
-        width: 100,
-        height: 100,
-      } as Shape;
-    } else {
-      newShape = {
-        ...commonProps,
-        type: 'text',
-        text: 'Новый текст',
-        fontSize: 24,
-        fontFamily: 'Arial',
-      } as Shape;
-    }
+    const addSlide = () => {
+        const newSlide: Slide = { id: uuidv4(), shapes: [] };
+        const newSlides = [...slides, newSlide];
+        setSlides(newSlides);
+        setActiveSlideIndex(newSlides.length - 1);
+    };
 
-    setShapes([...shapes, newShape]);
-  };
+    const deleteSlide = (idToDelete: string) => {
+        if (slides.length <= 1) return;
+        const newSlides = slides.filter((slide) => slide.id !== idToDelete);
+        setSlides(newSlides);
+        setActiveSlideIndex((prev) => Math.min(prev, newSlides.length - 1));
+    };
 
-  const handleShapeUpdate = (id: string, newAttrs: Partial<Shape>) => {
-    setShapes(
-        shapes.map((shape) => {
-          if (shape.id === id) {
-            return { ...shape, ...newAttrs };
-          }
-          return shape;
-        })
+    const addShape = (type: 'rect' | 'circle' | 'triangle' | 'text') => {
+        const commonProps = { id: uuidv4(), x: 150, y: 150, rotation: 0 };
+        let newShape: Shape;
+        switch (type) {
+            case 'rect': newShape = { ...commonProps, type, width: 100, height: 100, fill: '#8BC34A' }; break;
+            case 'circle': newShape = { ...commonProps, type, width: 100, height: 100, fill: '#2196F3' }; break;
+            case 'triangle': newShape = { ...commonProps, type, width: 100, height: 100, fill: '#FFC107' }; break;
+            case 'text':
+                const fontSize = 24;
+                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 150, height: fontSize * 1.2, fill: '#673AB7' };
+                break;
+        }
+        const newSlides = slides.map((slide, index) =>
+            index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide
+        );
+        setSlides(newSlides);
+    };
+
+    const addImageShape = (src: string, width: number, height: number) => {
+        const newImage: ImageShape = {
+            id: uuidv4(), x: 150, y: 150, rotation: 0,
+            type: 'image', src, width, height, fill: '',
+        };
+        const newSlides = slides.map((slide, index) =>
+            index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newImage] } : slide
+        );
+        setSlides(newSlides);
+    };
+
+    const updateShape = (shapeId: string, newAttrs: Partial<Shape>) => {
+        const newSlides = slides.map((slide, index) => {
+            if (index === activeSlideIndex) {
+                return {
+                    ...slide,
+                    shapes: slide.shapes.map((shape) =>
+                        shape.id === shapeId ? { ...shape, ...newAttrs } as Shape : shape
+                    ),
+                };
+            }
+            return slide;
+        });
+        setSlides(newSlides);
+    };
+
+    return (
+        <>
+            <div className="app-container">
+                <div className="left-sidebar">
+                    <SlidesPanel
+                        slides={slides} activeIndex={activeSlideIndex} onSelectSlide={setActiveSlideIndex}
+                        onAddSlide={addSlide} onDeleteSlide={deleteSlide}
+                    />
+                    <PropertiesPanel shape={selectedShape} onUpdate={updateShape} />
+                </div>
+                <main className="main-content">
+                    <TopToolbar
+                        onAddShape={addShape} onAddImage={addImageShape}
+                        onOpenSettings={() => setIsSettingsOpen(true)}
+                        onStartPresentation={() => setIsPresenting(true)}
+                    />
+                    <PresentationCanvas
+                        shapes={activeSlide?.shapes || []} selectedId={selectedId} onSelect={setSelectedId}
+                        onUpdate={updateShape} aspectRatio={slideAspectRatio}
+                    />
+                </main>
+                <div className="right-sidebar"><ChatPanel /></div>
+            </div>
+            <SettingsModal
+                isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
+                currentAspectRatio={slideAspectRatio} onAspectRatioChange={setSlideAspectRatio}
+            />
+            {isPresenting && <PresentationView slides={slides} onClose={() => setIsPresenting(false)} />}
+        </>
     );
-  };
-
-  const selectedShape = shapes.find((shape) => shape.id === selectedId);
-
-  return (
-      <div className="app-container">
-        <div className="left-sidebar">
-          <SlidesPanel />
-          <PropertiesPanel
-              shape={selectedShape}
-              onUpdate={handleShapeUpdate}
-          />
-        </div>
-        <main className="main-content">
-          <TopToolbar onAddShape={handleAddShape} />
-          <PresentationCanvas
-              shapes={shapes}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              onUpdate={handleShapeUpdate}
-          />
-        </main>
-        <div className="right-sidebar">
-          <ChatPanel />
-        </div>
-      </div>
-  );
 }
 
 export default App;
