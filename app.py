@@ -1,71 +1,108 @@
-# app.py
+# backend/app.py
+
 from flask import Flask, jsonify, request
+import flask_cors
+import uuid
 
-# Создаем экземпляр приложения Flask
+# 1. Инициализация приложения
 app = Flask(__name__)
+# Разрешаем CORS для всех доменов. Для продакшена лучше указать конкретный домен фронтенда.
+flask_cors.CORS(app)
 
-# --- API-ЗАГЛУШКИ ---
-
-# Временное хранилище данных (вместо базы данных)
-mock_presentation = {
-    "id": 1,
-    "title": "Урок по Фотосинтезу",
-    "slides": [
-        {
-            "id": 1,
-            "type": "title_slide",
-            "content": {
-                "title": "Что такое фотосинтез?",
-                "subtitle": "Урок для 6 класса"
-            }
-        },
-        {
-            "id": 2,
-            "type": "text_and_image_slide",
-            "content": {
-                "text": "Это процесс, при котором растения используют свет для создания пищи.",
-                "image_url": "https://example.com/photosynthesis.jpg"
-            }
-        }
-    ]
-}
+# 2. Наша временная база данных
+# Ключ - ID презентации, значение - сама презентация в формате JSON (python dict)
+presentations_db = {}
 
 
-# Эндпоинт для получения одной презентации (пока всегда одной и той же)
-@app.route('/api/presentations/1', methods=['GET'])
-def get_presentation():
-    """Отдает заранее подготовленную презентацию."""
-    print("Фронтенд запросил презентацию!")
-    return jsonify(mock_presentation)
+# 3. Создаем эндпоинты
+
+# Эндпоинт для проверки, что сервер работает
+@app.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({"status": "ok"})
+
+
+# Эндпоинт для сохранения НОВОЙ презентации
+@app.route('/api/presentations', methods=['POST'])
+def save_presentation():
+    # Получаем JSON-данные из тела запроса
+    presentation_data = request.get_json()
+    if not presentation_data:
+        return jsonify({"error": "No data provided"}), 400
+
+    # Генерируем уникальный ID для новой презентации
+    presentation_id = str(uuid.uuid4())
+    presentations_db[presentation_id] = presentation_data
+
+    print(f"Презентация сохранена с ID: {presentation_id}")  # Логирование для отладки
+    return jsonify({"message": "Presentation saved successfully", "id": presentation_id}), 201
+
+
+# Эндпоинт для получения (загрузки) существующей презентации
+@app.route('/api/presentations/<presentation_id>', methods=['GET'])
+def get_presentation(presentation_id):
+    presentation = presentations_db.get(presentation_id)
+    if not presentation:
+        return jsonify({"error": "Presentation not found"}), 404
+
+    return jsonify(presentation)
+
+
+# Эндпоинт для ОБНОВЛЕНИЯ существующей презентации
+@app.route('/api/presentations/<presentation_id>', methods=['PUT'])
+def update_presentation(presentation_id):
+    if presentation_id not in presentations_db:
+        return jsonify({"error": "Presentation not found"}), 404
+
+    presentation_data = request.get_json()
+    if not presentation_data:
+        return jsonify({"error": "No data provided"}), 400
+
+    presentations_db[presentation_id] = presentation_data
+    print(f"Презентация обновлена: {presentation_id}")  # Логирование для отладки
+    return jsonify({"message": "Presentation updated successfully"})
 
 
 # Эндпоинт для обработки промта от пользователя
-@app.route('/api/generate-slides', methods=['POST'])
+@app.route('/api/ai/generate', methods=['POST'])
 def generate_slides():
-    """Принимает промт от фронтенда."""
     data = request.get_json()
-    user_prompt = data.get('prompt')
+    prompt = data.get('prompt')
 
-    if not user_prompt:
-        return jsonify({"error": "Промт не найден"}), 400
+    if not prompt:
+        return jsonify({"error": "Prompt is required"}), 400
 
-    print(f"Получили промт от пользователя: '{user_prompt}'")
+    # --- ЗДЕСЬ ТЫ БУДЕШЬ ВЗАИМОДЕЙСТВОВАТЬ С НИКИТОЙ ---
+    # Например, ты отправляешь HTTP запрос на его сервис
+    # или просто вызываешь его функцию, если вы работаете в одном проекте.
 
-    # --- ЗДЕСЬ ТЫ БУДЕШЬ ПЕРЕДАВАТЬ ПРОМТ НИКИТЕ ---
-    # А пока просто вернем успешный ответ и пример сгенерированных слайдов
+    # Пока что мы просто вернем заглушку, как будто ИИ нам ответил.
+    print(f"Получен промт для Никиты: {prompt}")
 
-    mock_generated_slides = {
+    # Этот JSON-ответ должен сгенерировать Никита, здесь просто пример
+    ai_generated_slides = {
         "slides": [
-            {"id": 3, "content": {"title": "Сгенерированный слайд 1"}},
-            {"id": 4, "content": {"title": "Сгенерированный слайд 2"}}
+            {
+                "slideId": str(uuid.uuid4()),
+                "shapes": [
+                    {"id": str(uuid.uuid4()), "type": "text", "text": "Слайд 1 по теме: " + prompt, "x": 50, "y": 50,
+                     "fontSize": 24, "fill": "#000"},
+                ]
+            },
+            {
+                "slideId": str(uuid.uuid4()),
+                "shapes": [
+                    {"id": str(uuid.uuid4()), "type": "text", "text": "Слайд 2", "x": 50, "y": 50, "fontSize": 24,
+                     "fill": "#000"},
+                ]
+            }
         ]
     }
 
-    return jsonify(mock_generated_slides)
+    return jsonify(ai_generated_slides)
 
 
-# Запуск сервера для разработки
+# 4. Запуск сервера
 if __name__ == '__main__':
-    # host='0.0.0.0' делает сервер видимым в локальной сети
-    # port=5001 чтобы не конфликтовать с портом фронтенда (часто 5000)
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # host='0.0.0.0' делает сервер доступным в локальной сети
+    app.run(host='0.0.0.0', port=5000, debug=True)
