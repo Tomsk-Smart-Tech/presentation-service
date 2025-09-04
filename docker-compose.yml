@@ -1,21 +1,28 @@
 # docker-compose.yml
-version: '3.8'
 services:
-  triton:
-    # image: nvcr.io/nvidia/tritonserver:24.01-py3
+  frontend:
     build:
-      context: ./triton 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80" # Левая цифра - порт на вашем компьютере, правая - порт внутри контейнера (у Nginx это 80)
+    restart: unless-stopped
+  triton:
+    build:
+      context: ./triton
     container_name: triton_server
-    shm_size: '16g' # Важно для некоторых моделей
+    shm_size: '16g'
     ulimits:
       memlock: -1
       stack: 67108864
-    ports:
-      - "8000:8000" # HTTP port
-      - "8001:8001" # gRPC port
-      - "8002:8002" # Metrics port
+    # ports:
+    #   - "25565:8000" # HTTP port
+    #   - "8001:8001" # gRPC port
+    #   - "8002:8002" # Metrics port
+    # environment:
+    #   - LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64
     volumes:
-      - ./models:/models # Пробрасываем нашу папку с моделями внутрь контейнера
+      - ./triton/model_repository:/models
     command: tritonserver --model-repository=/models
 
     deploy:
@@ -23,5 +30,10 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1 # или 'all'
+              count: 1
               capabilities: [gpu]
+
+#  proxy:
+#    build: ./proxy
+#    ports:
+#      - "25565:5000"
