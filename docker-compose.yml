@@ -51,3 +51,7 @@ services:
    build: ./proxy
    ports:
      - "25565:5000"
+
+networks:
+  default:
+    driver: bridge
