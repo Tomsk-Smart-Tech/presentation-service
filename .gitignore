@@ -1,7 +1,13 @@
+*.txt
+*.env
+*.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
+*.pyc
+
 
 # C extensions
 *.so
@@ -205,3 +211,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+triton/Mixtral-8x7B-Instruct-v0.1-GGUF/1/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf

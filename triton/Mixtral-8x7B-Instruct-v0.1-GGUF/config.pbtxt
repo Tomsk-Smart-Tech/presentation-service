@@ -1,0 +1,21 @@
+# config.pbtxt
+name: "Mixtral-8x7B-Instruct-v0.1-GGUF"
+backend: "python" # Указываем, что используем Python Backend
+
+# Описываем входные данные: один строковый параметр "prompt"
+input [
+  {
+    name: "prompt"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+# Описываем выходные данные: один строковый параметр "generated_text"
+output [
+  {
+    name: "generated_text"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
