@@ -1,6 +1,7 @@
+// src/components/PresentationView/PresentationView.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Stage, Layer, Rect, Ellipse, RegularPolygon, Text, Group } from 'react-konva';
-import { Slide, Shape } from '../../types';
+import { Slide, Shape, TextShape } from '../../types';
 import './PresentationView.css';
 import { URLImage } from '../Canvas/URLImage';
 
@@ -12,6 +13,7 @@ interface PresentationViewProps {
     aspectRatio: string;
 }
 
+// --- ПОЛНАЯ РЕАЛИЗАЦИЯ ХУКА useWindowSize ---
 const useWindowSize = () => {
     const [size, setSize] = useState({
         width: window.innerWidth,
@@ -29,6 +31,7 @@ const useWindowSize = () => {
     }, []);
     return size;
 };
+
 
 export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationViewProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,6 +56,7 @@ export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationV
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [goToNext, goToPrev, onClose]);
 
+    // --- ПОЛНАЯ РЕАЛИЗАЦИЯ ХУКА useMemo ---
     const slideSize = useMemo(() => {
         const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
         const targetRatio = ratioW / ratioH;
@@ -68,7 +72,6 @@ export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationV
     }, [windowSize, aspectRatio]);
 
     const scale = slideSize.width / LOGICAL_WIDTH;
-
     const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
     const LOGICAL_HEIGHT = LOGICAL_WIDTH / (ratioW / ratioH);
 
@@ -79,20 +82,14 @@ export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationV
                     <Rect x={0} y={0} width={windowSize.width} height={windowSize.height} fill="black" />
                     <Group x={(windowSize.width - slideSize.width) / 2} y={(windowSize.height - slideSize.height) / 2}>
                         <Rect width={slideSize.width} height={slideSize.height} fill="white" />
-                        <Group
-                            scaleX={scale}
-                            scaleY={scale}
-                            clipFunc={(ctx) => {
-                                ctx.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-                            }}
-                        >
+                        <Group scaleX={scale} scaleY={scale} clipFunc={(ctx) => { ctx.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT); }}>
                             {activeSlide.shapes.map((shape: Shape) => {
                                 const commonProps = { ...shape, draggable: false };
                                 switch (shape.type) {
                                     case 'rect': return <Rect key={shape.id} {...commonProps} />;
                                     case 'circle': return <Ellipse key={shape.id} {...commonProps} radiusX={shape.width / 2} radiusY={shape.height / 2} />;
                                     case 'triangle': return <RegularPolygon key={shape.id} {...commonProps} sides={3} radius={shape.height / 2} scaleX={shape.width / shape.height} />;
-                                    case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" />;
+                                    case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" fontFamily={(shape as TextShape).fontFamily} />;
                                     case 'image': return <URLImage key={shape.id} shape={shape} {...commonProps} />;
                                     default: return null;
                                 }

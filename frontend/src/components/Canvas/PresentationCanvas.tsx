@@ -1,7 +1,8 @@
+// src/components/Canvas/PresentationCanvas.tsx
 import React, { useRef, useEffect, useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Stage, Layer, Rect, Text, Transformer, Ellipse, RegularPolygon, Group } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { Shape } from '../../types';
+import { Shape, TextShape } from '../../types';
 import Konva from 'konva';
 import { URLImage } from './URLImage';
 
@@ -51,7 +52,7 @@ export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProp
                 slideWidth = containerHeight * targetRatio;
             }
             return { width: slideWidth, height: slideHeight, x: (size.width - slideWidth) / 2, y: (size.height - slideHeight) / 2 };
-        }, [size.width, size.height, aspectRatio]);
+        }, [size.width, size.height, aspectRatio, ratioW, ratioH]);
 
         useEffect(() => {
             if (!trRef.current || !stageRef.current) return;
@@ -77,9 +78,9 @@ export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProp
                 <Stage ref={stageRef} width={size.width} height={size.height} onMouseDown={checkDeselect} onTouchStart={checkDeselect}>
                     <Layer>
                         <Rect {...slideProps} fill="white" cornerRadius={8} name="slide-background" />
-                        {}
                         <Group x={slideProps.x} y={slideProps.y} scaleX={scale} scaleY={scale} clipFunc={(ctx) => { ctx.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT)}}>
                             {shapes.map((shape) => {
+                                // --- 👇 ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ---
                                 const commonProps = {
                                     ...shape,
                                     draggable: true,
@@ -96,21 +97,28 @@ export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProp
                                     case 'rect': return <Rect key={shape.id} {...commonProps} />;
                                     case 'circle': return <Ellipse key={shape.id} {...commonProps} radiusX={shape.width / 2} radiusY={shape.height / 2} />;
                                     case 'triangle': return <RegularPolygon key={shape.id} {...commonProps} sides={3} radius={shape.height / 2} scaleX={shape.width / shape.height} />;
-                                    case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" />;
+                                    case 'text': return <Text key={shape.id} {...commonProps} verticalAlign="middle" fontFamily={(shape as TextShape).fontFamily} />;
                                     case 'image': return <URLImage key={shape.id} shape={shape} {...commonProps} />;
                                     default: return null;
                                 }
                             })}
+                            {/* --- 👇 ВТОРОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ --- */}
                             <Transformer
-                                ref={trRef} keepRatio={false} boundBoxFunc={(oldBox, newBox) => (newBox.width < 5 || newBox.height < 5 ? oldBox : newBox)}
+                                ref={trRef}
+                                keepRatio={false}
+                                boundBoxFunc={(oldBox, newBox) => (newBox.width < 5 || newBox.height < 5 ? oldBox : newBox)}
                                 onTransformEnd={() => {
                                     const node = trRef.current?.nodes()[0];
                                     if (!node) return;
                                     onUpdate(node.id(), {
-                                        x: node.x(), y: node.y(), rotation: node.rotation(),
-                                        width: node.width() * node.scaleX(), height: node.height() * node.scaleY(),
+                                        x: node.x(),
+                                        y: node.y(),
+                                        rotation: node.rotation(),
+                                        width: node.width() * node.scaleX(),
+                                        height: node.height() * node.scaleY(),
                                     });
-                                    node.scaleX(1); node.scaleY(1);
+                                    node.scaleX(1);
+                                    node.scaleY(1);
                                 }}
                             />
                         </Group>

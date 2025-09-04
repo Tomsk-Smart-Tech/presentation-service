@@ -17,6 +17,7 @@ export interface TextShape extends BaseShape {
     type: 'text';
     text: string;
     fontSize: number;
+    fontFamily: string;
 }
 
 export interface ImageShape extends BaseShape {

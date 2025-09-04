@@ -67,12 +67,13 @@ function App() {
         let newShape: Shape;
 
         switch (type) {
-            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#8BC34A' }; break;
-            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#2196F3' }; break;
-            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#FFC107' }; break;
+            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#1c25d1' }; break;
+            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#1c25d1' }; break;
+            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#1c25d1' }; break;
             case 'text':
                 const fontSize = 48;
-                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#673AB7' };
+                // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#000000', fontFamily: 'Arial' };
                 break;
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }

@@ -19,6 +19,7 @@ export const mockAiApiCall = (prompt: string): Promise<Slide[]> => {
                     fontSize: 80,
                     fill: '#333333',
                     rotation: 0,
+                    fontFamily: 'Georgia', // <-- ДОБАВЛЕНО
                 },
                 {
                     id: uuidv4(),
@@ -29,6 +30,7 @@ export const mockAiApiCall = (prompt: string): Promise<Slide[]> => {
                     fontSize: 32,
                     fill: '#888888',
                     rotation: 0,
+                    fontFamily: 'Arial', // <-- ДОБАВЛЕНО
                 }
             ],
         },
@@ -44,6 +46,7 @@ export const mockAiApiCall = (prompt: string): Promise<Slide[]> => {
                     fontSize: 58,
                     fill: '#007acc',
                     rotation: 0,
+                    fontFamily: 'Verdana', // <-- ДОБАВЛЕНО
                 },
                 {
                     id: uuidv4(),

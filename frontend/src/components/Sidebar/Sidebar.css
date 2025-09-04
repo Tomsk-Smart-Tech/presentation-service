@@ -164,3 +164,13 @@
 .properties-panel::-webkit-scrollbar {
     display: none;
 }
+
+.properties-panel select {
+    background-color: #3e3e42;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 5px;
+    box-sizing: border-box;
+    width: 120px; /* Можно задать фиксированную ширину */
+}
