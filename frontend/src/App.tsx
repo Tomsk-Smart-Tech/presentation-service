@@ -8,11 +8,13 @@ import { SlidesPanel } from './components/Sidebar/SlidesPanel';
 import { PropertiesPanel } from './components/Sidebar/PropertiesPanel';
 import { TopToolbar } from './components/Toolbar/TopToolbar';
 import { PresentationCanvas } from './components/Canvas/PresentationCanvas';
-import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import { PresentationView } from './components/PresentationView/PresentationView';
 import { generateSlides } from './services/api';
+import { transformAiResponseToSlides } from './services/dataTransformer';
 import { Shape, Slide } from './types';
+import { TemplatesPanel } from './components/Sidebar/TemplatesPanel';
+import { AiInputBar } from './components/AiInput/AiInputBar';
 
 const LOGICAL_WIDTH = 1280;
 
@@ -26,53 +28,6 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
         img.onerror = (err) => reject(err);
     });
 };
-
-// Функция-адаптер для "очистки" и дополнения данных от сервера или из файла
-const transformSlidesData = (slides: any[]): Slide[] => {
-    if (!Array.isArray(slides)) {
-        console.error("Получены некорректные данные для слайдов:", slides);
-        return [];
-    }
-
-    return slides.map((slide: any) => {
-        if (!slide.shapes || !Array.isArray(slide.shapes)) {
-            return { ...slide, id: slide.id || uuidv4(), shapes: [] };
-        }
-
-        const cleanShapes = slide.shapes.map((shape: any) => {
-            const baseDefaults = {
-                id: uuidv4(),
-                x: 50,
-                y: 50,
-                width: 400,
-                height: 100,
-                fill: '#333333',
-                rotation: 0,
-            };
-
-            const textDefaults = { ...baseDefaults, fontFamily: 'Arial', fontSize: 32, text: 'Нет текста' };
-            const imageDefaults = { ...baseDefaults, fill: '', src: '' };
-
-            let defaults;
-            switch (shape.type) {
-                case 'text': defaults = textDefaults; break;
-                case 'image': defaults = imageDefaults; break;
-                default: defaults = baseDefaults;
-            }
-
-            const transformedShape = { ...defaults, ...shape };
-
-            if (transformedShape.image_description) {
-                delete transformedShape.image_description;
-            }
-
-            return transformedShape;
-        });
-
-        return { ...slide, id: slide.id || uuidv4(), shapes: cleanShapes };
-    });
-};
-
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,15 +45,13 @@ function App() {
 
     const handleLoginSuccess = () => setIsAuthenticated(true);
 
-    const applyPresentationState = (newSlides: any[]) => {
-        const cleanSlides = transformSlidesData(newSlides);
-
-        if (cleanSlides.length > 0) {
-            setSlides(cleanSlides);
+    const applyPresentationState = (newSlides: Slide[]) => {
+        if (newSlides && newSlides.length > 0) {
+            setSlides(newSlides);
             setActiveSlideIndex(0);
             setSelectedId(null);
         } else {
-            alert("Ошибка: Некорректный формат данных для презентации.");
+            alert("Не удалось создать слайды из полученных данных.");
         }
     };
 
@@ -108,6 +61,31 @@ function App() {
         setSlides(newSlides);
         setActiveSlideIndex(newSlides.length - 1);
     }, [slides]);
+
+    const addTemplateSlide = useCallback((templateType: 'title' | 'content' | 'image' | 'final') => {
+        let newShapes: Shape[] = [];
+        switch (templateType) {
+            case 'title':
+                newShapes.push({ id: uuidv4(), type: 'text', text: 'Заголовок', fontSize: 80, x: 60, y: 250, width: 1160, height: 120, fill: '#333', rotation: 0, fontFamily: 'Georgia' });
+                newShapes.push({ id: uuidv4(), type: 'text', text: 'Подзаголовок', fontSize: 40, x: 60, y: 380, width: 1160, height: 50, fill: '#555', rotation: 0, fontFamily: 'Arial' });
+                break;
+            case 'content':
+                newShapes.push({ id: uuidv4(), type: 'text', text: 'Заголовок', fontSize: 58, x: 50, y: 50, width: 680, height: 70, fill: '#005A9C', rotation: 0, fontFamily: 'Verdana' });
+                newShapes.push({ id: uuidv4(), type: 'text', text: '• Ваш текст здесь', fontSize: 32, x: 50, y: 150, width: 680, height: 500, fill: '#333', rotation: 0, fontFamily: 'Arial' });
+                break;
+            case 'image':
+                newShapes.push({ id: uuidv4(), type: 'text', text: 'Заголовок', fontSize: 58, x: 50, y: 50, width: 1180, height: 70, fill: '#333', rotation: 0, fontFamily: 'Verdana' });
+                break;
+            case 'final':
+                newShapes.push({ id: uuidv4(), type: 'text', text: 'Спасибо за внимание!', fontSize: 72, x: 60, y: 300, width: 1160, height: 90, fill: '#333', rotation: 0, fontFamily: 'Georgia' });
+                break;
+        }
+        const newSlide: Slide = { id: uuidv4(), shapes: newShapes };
+        const newSlides = [...slides, newSlide];
+        setSlides(newSlides);
+        setActiveSlideIndex(newSlides.length - 1);
+    }, [slides]);
+
 
     const deleteSlide = useCallback((idToDelete: string) => {
         if (slides.length <= 1) return;
@@ -131,7 +109,7 @@ function App() {
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }
         setSlides(slides => slides.map((slide, index) => index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide));
-    }, [activeSlideIndex, slideAspectRatio]);
+    }, [activeSlideIndex, slideAspectRatio, slides, activeSlideIndex]);
 
     const updateShape = useCallback((shapeId: string, newAttrs: Partial<Shape>) => {
         setSlides(slides => slides.map((slide, index) => {
@@ -278,11 +256,8 @@ function App() {
         setIsLoadingAi(true);
         try {
             const serverResponse = await generateSlides(prompt);
-            if (serverResponse && serverResponse.slides) {
-                applyPresentationState(serverResponse.slides);
-            } else {
-                throw new Error("Сервер вернул данные в неожиданном формате.");
-            }
+            const newSlides = transformAiResponseToSlides(serverResponse);
+            applyPresentationState(newSlides);
         } catch (error) {
             console.error("AI Generation Error:", error);
             alert(error instanceof Error ? error.message : "Произошла ошибка при генерации презентации.");
@@ -294,9 +269,7 @@ function App() {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             const target = e.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                return;
-            }
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
                 deleteShape(selectedId);
             }
@@ -332,7 +305,6 @@ function App() {
                         onExportJSON={handleExportJSON}
                         onImportJSON={() => jsonInputRef.current?.click()}
                     />
-                    <input type="file" ref={jsonInputRef} style={{ display: 'none' }} accept="application/json" onChange={handleImportJSON} />
                     <PresentationCanvas
                         ref={stageRef}
                         shapes={activeSlide?.shapes || []}
@@ -341,9 +313,10 @@ function App() {
                         onUpdate={updateShape}
                         aspectRatio={slideAspectRatio}
                     />
+                    <AiInputBar onSendCommand={handleAiCommand} isLoading={isLoadingAi} />
                 </main>
                 <div className="right-sidebar">
-                    <ChatPanel onSendCommand={handleAiCommand} />
+                    <TemplatesPanel onAddTemplate={addTemplateSlide} />
                 </div>
             </div>
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentAspectRatio={slideAspectRatio} onAspectRatioChange={setSlideAspectRatio} />
