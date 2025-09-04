@@ -1,0 +1,176 @@
+
+.left-sidebar > .panel {
+    flex: 1;
+    min-height: 0;
+}
+
+.panel {
+    background-color: #252526;
+    border-radius: 8px;
+    padding: 5px 15px;
+    box-sizing: border-box;
+}
+
+.left-sidebar > .panel:first-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: flex-start;
+    gap: 130px;
+    align-items: center;
+    margin-bottom: 0px;
+    padding: 0 0 0px 10px;
+    flex-shrink: 0;
+}
+
+.add-btn {
+    background-color: #0e639c;
+    color: white;
+    width: 28px; height: 28px; font-size: 22px;
+
+}
+
+.delete-btn {
+    background-color: #9c2727;
+    color: white;
+    width: 28px; height: 28px; font-size: 22px;
+}
+
+.add-btn, .delete-btn {
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slides-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.slide-item {
+    background-color: #3e3e42;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.slide-item:hover {
+    background-color: #555;
+}
+.slide-item.active {
+    background-color: #4b6373;
+}
+
+
+.properties-panel {
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.properties-panel h3 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.properties-panel .prop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.properties-panel .prop-item:last-child {
+    margin-bottom: 0;
+}
+
+.properties-panel input {
+    background-color: #3e3e42;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+.properties-panel input[type="number"] { width: 60px; }
+.properties-panel input[type="text"] { width: 100%; }
+.properties-panel input[type="color"] {
+    padding: 3px; width: 40px; height: 40px; border: none;
+}
+
+.properties-panel .prop-group {
+    border-top: 1px solid #3e3e42;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.properties-panel .prop-item.wide {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.properties-panel .prop-group-buttons {
+    display: flex;
+    gap: 10px;
+}
+.properties-panel .prop-group-buttons button {
+    width: 100%;
+    background-color: #555;
+    border: 1px solid #666;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.properties-panel .prop-group-buttons button:hover {
+    background-color: #6e6e70;
+}
+
+.delete-button {
+    width: 100%;
+    background-color: #b83333;
+    border: 1px solid #c75656;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-weight: bold;
+}
+.delete-button:hover {
+    background-color: #d34040;
+}
+
+
+.slides-list,
+.properties-panel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.slides-list::-webkit-scrollbar,
+.properties-panel::-webkit-scrollbar {
+    display: none;
+}
+
+.properties-panel select {
+    background-color: #3e3e42;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 5px;
+    box-sizing: border-box;
+    width: 120px;
+}
