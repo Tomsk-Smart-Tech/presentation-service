@@ -61,12 +61,14 @@ app = FastAPI(
 
 # --- Настройка CORS (Cross-Origin Resource Sharing) ---
 # Это КРАЙНЕ ВАЖНО, чтобы ваш фронтенд мог обращаться к этому API
-origins = [
-    "http://localhost",       # Разрешаем запросы с локального хоста
-    "http://localhost:3000",  # Пример: если ваш фронтенд на React работает на порту 3000
-    "http://127.0.0.1:3000",
-    # "*" # Можно разрешить все источники, но это менее безопасно
-]
+# origins = [
+#     "http://localhost",       # Разрешаем запросы с локального хоста
+#     "http://localhost:3000",  # Пример: если ваш фронтенд на React работает на порту 3000
+#     "http://127.0.0.1:3000",
+#     # "*" # Можно разрешить все источники, но это менее безопасно
+# ]
+
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -102,7 +104,7 @@ def get_prediction_from_triton(prompt_text: str) -> dict:
         logger.info(f"Подготовка запроса для Triton с промптом: '{prompt_text[:70]}...'")
         
         # 1. Подготавливаем входной тензор
-        prompt_tensor = httpclient.InferInput("USER_PROMPT", [1], "BYTES")
+        prompt_tensor = httpclient.InferInput("prompt", [1], "BYTES")
         prompt_tensor.set_data_from_numpy(np.array([prompt_text.encode('utf-8')], dtype=np.object_))
 
         # 2. Отправляем запрос на инференс
