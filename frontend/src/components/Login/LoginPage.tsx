@@ -10,7 +10,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); // <-- ДОБАВЛЕНО: состояние загрузки
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,7 +60,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Логин"
                             className="login-input"
-                            disabled={loading} // <-- ДОБАВЛЕНО
+                            disabled={loading}
                         />
                         <input
                             type="password"
@@ -68,7 +68,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Пароль"
                             className="login-input"
-                            disabled={loading} // <-- ДОБАВЛЕНО
+                            disabled={loading}
                         />
                         <button type="submit" className="login-button" disabled={loading}>
                             {loading ? 'Вход...' : 'Войти'}
