@@ -11,7 +11,7 @@ import { PresentationCanvas } from './components/Canvas/PresentationCanvas';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import { PresentationView } from './components/PresentationView/PresentationView';
-import { generateSlides } from './services/api'; // <-- ИМПОРТ РЕАЛЬНОГО API
+import { generateSlides } from './services/api';
 import { Shape, Slide } from './types';
 
 const LOGICAL_WIDTH = 1280;
@@ -26,6 +26,53 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
         img.onerror = (err) => reject(err);
     });
 };
+
+// Функция-адаптер для "очистки" и дополнения данных от сервера или из файла
+const transformSlidesData = (slides: any[]): Slide[] => {
+    if (!Array.isArray(slides)) {
+        console.error("Получены некорректные данные для слайдов:", slides);
+        return [];
+    }
+
+    return slides.map((slide: any) => {
+        if (!slide.shapes || !Array.isArray(slide.shapes)) {
+            return { ...slide, id: slide.id || uuidv4(), shapes: [] };
+        }
+
+        const cleanShapes = slide.shapes.map((shape: any) => {
+            const baseDefaults = {
+                id: uuidv4(),
+                x: 50,
+                y: 50,
+                width: 400,
+                height: 100,
+                fill: '#333333',
+                rotation: 0,
+            };
+
+            const textDefaults = { ...baseDefaults, fontFamily: 'Arial', fontSize: 32, text: 'Нет текста' };
+            const imageDefaults = { ...baseDefaults, fill: '', src: '' };
+
+            let defaults;
+            switch (shape.type) {
+                case 'text': defaults = textDefaults; break;
+                case 'image': defaults = imageDefaults; break;
+                default: defaults = baseDefaults;
+            }
+
+            const transformedShape = { ...defaults, ...shape };
+
+            if (transformedShape.image_description) {
+                delete transformedShape.image_description;
+            }
+
+            return transformedShape;
+        });
+
+        return { ...slide, id: slide.id || uuidv4(), shapes: cleanShapes };
+    });
+};
+
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,9 +90,11 @@ function App() {
 
     const handleLoginSuccess = () => setIsAuthenticated(true);
 
-    const applyPresentationState = (newSlides: Slide[]) => {
-        if (Array.isArray(newSlides) && newSlides.length > 0) {
-            setSlides(newSlides);
+    const applyPresentationState = (newSlides: any[]) => {
+        const cleanSlides = transformSlidesData(newSlides);
+
+        if (cleanSlides.length > 0) {
+            setSlides(cleanSlides);
             setActiveSlideIndex(0);
             setSelectedId(null);
         } else {
@@ -73,12 +122,12 @@ function App() {
         const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 150, y: logicalHeight / 2 - 100, rotation: 0 };
         let newShape: Shape;
         switch (type) {
-            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#193283' }; break;
-            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#193283' }; break;
-            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#193283' }; break;
+            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#8BC34A' }; break;
+            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#2196F3' }; break;
+            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#FFC107' }; break;
             case 'text':
                 const fontSize = 48;
-                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#000000', fontFamily: 'Arial' }; break;
+                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#673AB7', fontFamily: 'Arial' }; break;
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }
         setSlides(slides => slides.map((slide, index) => index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide));
@@ -144,7 +193,9 @@ function App() {
             try {
                 const result = e.target?.result;
                 if (typeof result === 'string') {
-                    applyPresentationState(JSON.parse(result));
+                    const parsedData = JSON.parse(result);
+                    const slidesToProcess = Array.isArray(parsedData) ? parsedData : parsedData.slides;
+                    applyPresentationState(slidesToProcess);
                 }
             } catch (error) {
                 alert('Ошибка при чтении файла. Убедитесь, что это корректный JSON.');
@@ -226,9 +277,12 @@ function App() {
     const handleAiCommand = async (prompt: string) => {
         setIsLoadingAi(true);
         try {
-            // Используем реальный API-вызов
-            const newSlides = await generateSlides(prompt);
-            applyPresentationState(newSlides);
+            const serverResponse = await generateSlides(prompt);
+            if (serverResponse && serverResponse.slides) {
+                applyPresentationState(serverResponse.slides);
+            } else {
+                throw new Error("Сервер вернул данные в неожиданном формате.");
+            }
         } catch (error) {
             console.error("AI Generation Error:", error);
             alert(error instanceof Error ? error.message : "Произошла ошибка при генерации презентации.");
