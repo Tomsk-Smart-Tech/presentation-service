@@ -11,10 +11,21 @@ import { PresentationCanvas } from './components/Canvas/PresentationCanvas';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import { PresentationView } from './components/PresentationView/PresentationView';
-import { mockAiApiCall } from './ai/mockApi';
+import { generateSlides } from './services/api'; // <-- ИМПОРТ РЕАЛЬНОГО API
 import { Shape, Slide } from './types';
 
 const LOGICAL_WIDTH = 1280;
+
+// Вспомогательная функция для асинхронной загрузки изображений для PDF экспорта
+const loadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+        const img = new window.Image();
+        img.src = src;
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = (err) => reject(err);
+    });
+};
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -62,12 +73,12 @@ function App() {
         const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 150, y: logicalHeight / 2 - 100, rotation: 0 };
         let newShape: Shape;
         switch (type) {
-            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#8BC34A' }; break;
-            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#2196F3' }; break;
-            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#FFC107' }; break;
+            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#193283' }; break;
+            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#193283' }; break;
+            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#193283' }; break;
             case 'text':
                 const fontSize = 48;
-                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#673AB7', fontFamily: 'Arial' }; break;
+                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#000000', fontFamily: 'Arial' }; break;
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }
         setSlides(slides => slides.map((slide, index) => index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide));
@@ -144,37 +155,83 @@ function App() {
     };
 
     const handleExportPDF = async () => {
-        if (!stageRef.current) return;
         const [ratioW, ratioH] = slideAspectRatio.split(':').map(Number);
         const logicalHeight = LOGICAL_WIDTH / (ratioW / ratioH);
         const orientation = ratioW > ratioH ? 'l' : 'p';
         const pdf = new jsPDF(orientation, 'px', [LOGICAL_WIDTH, logicalHeight]);
-        const originalIndex = activeSlideIndex;
-        setSelectedId(null);
+
         for (let i = 0; i < slides.length; i++) {
-            setActiveSlideIndex(i);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            const stage = stageRef.current;
-            if (stage) {
-                const dataUrl = stage.toDataURL({ pixelRatio: 2 });
-                if (i > 0) {
-                    pdf.addPage([LOGICAL_WIDTH, logicalHeight], orientation);
+            const slide = slides[i];
+
+            const container = document.createElement('div');
+            container.style.display = 'none';
+            document.body.appendChild(container);
+
+            const stage = new Konva.Stage({
+                container: container,
+                width: LOGICAL_WIDTH,
+                height: logicalHeight,
+            });
+
+            const layer = new Konva.Layer();
+            layer.add(new Konva.Rect({ x: 0, y: 0, width: LOGICAL_WIDTH, height: logicalHeight, fill: 'white' }));
+            stage.add(layer);
+
+            const imageShapes = slide.shapes.filter(s => s.type === 'image');
+            const imagePromises = imageShapes.map(s => loadImage((s as any).src));
+            const loadedImages = await Promise.all(imagePromises);
+            const imagesMap = new Map(imageShapes.map((s, idx) => [(s as any).src, loadedImages[idx]]));
+
+            for (const shape of slide.shapes) {
+                let konvaShape;
+                switch (shape.type) {
+                    case 'rect':
+                        konvaShape = new Konva.Rect(shape);
+                        break;
+                    case 'circle':
+                        konvaShape = new Konva.Ellipse({ ...shape, radiusX: shape.width / 2, radiusY: shape.height / 2 });
+                        break;
+                    case 'triangle':
+                        konvaShape = new Konva.RegularPolygon({ ...shape, sides: 3, radius: shape.height / 2, scaleX: shape.width / shape.height });
+                        break;
+                    case 'text':
+                        konvaShape = new Konva.Text({ ...shape, verticalAlign: 'middle' });
+                        break;
+                    case 'image':
+                        const imgElement = imagesMap.get((shape as any).src);
+                        if (imgElement) {
+                            konvaShape = new Konva.Image({ ...shape, image: imgElement });
+                        }
+                        break;
                 }
-                pdf.addImage(dataUrl, 'PNG', 0, 0, LOGICAL_WIDTH, logicalHeight);
+                if (konvaShape) {
+                    layer.add(konvaShape);
+                }
             }
+
+            const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+
+            if (i > 0) {
+                pdf.addPage([LOGICAL_WIDTH, logicalHeight], orientation);
+            }
+            pdf.addImage(dataUrl, 'PNG', 0, 0, LOGICAL_WIDTH, logicalHeight);
+
+            stage.destroy();
+            document.body.removeChild(container);
         }
+
         pdf.save('presentation.pdf');
-        setActiveSlideIndex(originalIndex);
     };
 
     const handleAiCommand = async (prompt: string) => {
         setIsLoadingAi(true);
         try {
-            const newSlides = await mockAiApiCall(prompt);
+            // Используем реальный API-вызов
+            const newSlides = await generateSlides(prompt);
             applyPresentationState(newSlides);
         } catch (error) {
             console.error("AI Generation Error:", error);
-            alert("Произошла ошибка при генерации презентации.");
+            alert(error instanceof Error ? error.message : "Произошла ошибка при генерации презентации.");
         } finally {
             setIsLoadingAi(false);
         }

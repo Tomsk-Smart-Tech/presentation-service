@@ -214,3 +214,5 @@ __marimo__/
 
 
 triton/Mixtral-8x7B-Instruct-v0.1-GGUF/1/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf
+
+docker-compose.yml
