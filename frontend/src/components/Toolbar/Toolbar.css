@@ -1,11 +1,11 @@
 .top-toolbar {
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    position: relative;
 }
+
 .shape-buttons {
     background-color: #3e3e42;
     padding: 5px;
@@ -14,10 +14,13 @@
     gap: 10px;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .shape-buttons button,
-.play-btn,
-.settings-btn,
-.export-btn {
+.action-buttons button {
     background: #555;
     border: 1px solid #666;
     color: white;
@@ -30,28 +33,19 @@
     justify-content: center;
     align-items: center;
     padding: 0;
+    transition: background-color 0.2s;
 }
 
 .shape-buttons button:hover,
-.play-btn:hover,
-.settings-btn:hover,
-.export-btn:hover {
+.action-buttons button:hover {
     background: #6e6e70;
 }
 
-.play-btn {
-    position: absolute;
-    right: 0;
-}
-
-.settings-btn {
-    position: absolute;
-    right: 50px;
+.json-btn {
+    background: #4a4a4e;
 }
 
 .export-btn {
-    position: absolute;
-    right: 100px;
     font-weight: bold;
     font-size: 14px;
 }
