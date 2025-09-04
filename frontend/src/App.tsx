@@ -1,9 +1,9 @@
-// src/App.tsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './App.css';
 import { v4 as uuidv4 } from 'uuid';
 import Konva from 'konva';
 import jsPDF from 'jspdf';
+import { LoginPage } from './components/Login/LoginPage';
 import { SlidesPanel } from './components/Sidebar/SlidesPanel';
 import { PropertiesPanel } from './components/Sidebar/PropertiesPanel';
 import { TopToolbar } from './components/Toolbar/TopToolbar';
@@ -14,9 +14,9 @@ import { PresentationView } from './components/PresentationView/PresentationView
 import { Shape, Slide } from './types';
 
 const LOGICAL_WIDTH = 1280;
-const LOGICAL_HEIGHT = 720;
 
 function App() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [slides, setSlides] = useState<Slide[]>([{ id: uuidv4(), shapes: [] }]);
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -28,15 +28,14 @@ function App() {
     const activeSlide = slides[activeSlideIndex];
     const selectedShape = activeSlide?.shapes.find((shape) => shape.id === selectedId);
 
-    // --- НОВЫЕ ФУНКЦИИ ---
+    const handleLoginSuccess = () => {
+        setIsAuthenticated(true);
+    };
 
     const deleteShape = useCallback((shapeId: string) => {
         const newSlides = slides.map((slide, index) => {
             if (index === activeSlideIndex) {
-                return {
-                    ...slide,
-                    shapes: slide.shapes.filter((shape) => shape.id !== shapeId),
-                };
+                return { ...slide, shapes: slide.shapes.filter((shape) => shape.id !== shapeId) };
             }
             return slide;
         });
@@ -63,8 +62,6 @@ function App() {
         setSlides(newSlides);
     }, [slides, activeSlideIndex]);
 
-    // --- КОНЕЦ НОВЫХ ФУНКЦИЙ ---
-
     const addSlide = useCallback(() => {
         const newSlide: Slide = { id: uuidv4(), shapes: [] };
         const newSlides = [...slides, newSlide];
@@ -82,9 +79,7 @@ function App() {
     const updateShape = useCallback((shapeId: string, newAttrs: Partial<Shape>) => {
         const newSlides = slides.map((slide, index) => {
             if (index === activeSlideIndex) {
-                return {
-                    ...slide,
-                    shapes: slide.shapes.map((shape) =>
+                return { ...slide, shapes: slide.shapes.map((shape) =>
                         shape.id === shapeId ? { ...shape, ...newAttrs } as Shape : shape
                     ),
                 };
@@ -95,7 +90,9 @@ function App() {
     }, [slides, activeSlideIndex]);
 
     const addShape = useCallback((type: 'rect' | 'circle' | 'triangle' | 'text' | 'image', payload?: any) => {
-        const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 75, y: LOGICAL_HEIGHT / 2 - 50, rotation: 0 };
+        const [ratioW, ratioH] = slideAspectRatio.split(':').map(Number);
+        const logicalHeight = LOGICAL_WIDTH / (ratioW / ratioH);
+        const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 75, y: logicalHeight / 2 - 50, rotation: 0 };
         let newShape: Shape;
 
         switch (type) {
@@ -115,7 +112,7 @@ function App() {
             index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide
         );
         setSlides(newSlides);
-    }, [slides, activeSlideIndex]);
+    }, [slides, activeSlideIndex, slideAspectRatio]);
 
     const addImageShape = useCallback((src: string, width: number, height: number) => {
         const MAX_WIDTH = LOGICAL_WIDTH / 4;
@@ -123,9 +120,12 @@ function App() {
         addShape('image', { src, width: width * scale, height: height * scale });
     }, [addShape]);
 
-    // --- НОВЫЙ КОД ДЛЯ УДАЛЕНИЯ КЛАВИШЕЙ ---
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                return;
+            }
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
                 deleteShape(selectedId);
             }
@@ -134,38 +134,38 @@ function App() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedId, deleteShape]);
 
-    // --- НОВЫЙ КОД ДЛЯ ЭКСПОРТА PDF ---
     const handleExportPDF = async () => {
         if (!stageRef.current) return;
 
         const [ratioW, ratioH] = slideAspectRatio.split(':').map(Number);
-        const orientation = ratioW > ratioH ? 'l' : 'p'; // l - landscape, p - portrait
-        const pdf = new jsPDF(orientation, 'px', [LOGICAL_WIDTH, LOGICAL_HEIGHT]);
+        const logicalHeight = LOGICAL_WIDTH / (ratioW / ratioH);
+        const orientation = ratioW > ratioH ? 'l' : 'p';
+        const pdf = new jsPDF(orientation, 'px', [LOGICAL_WIDTH, logicalHeight]);
 
         const originalIndex = activeSlideIndex;
+        setSelectedId(null);
 
         for (let i = 0; i < slides.length; i++) {
-            // Временно устанавливаем активный слайд, чтобы он отрендерился
             setActiveSlideIndex(i);
-
-            // Ждем следующего кадра, чтобы React успел обновить DOM
             await new Promise(resolve => setTimeout(resolve, 50));
 
             const stage = stageRef.current;
             if (stage) {
-                const dataUrl = stage.toDataURL({ pixelRatio: 2 }); // Увеличиваем качество
+                const dataUrl = stage.toDataURL({ pixelRatio: 2 });
                 if (i > 0) {
-                    pdf.addPage();
+                    pdf.addPage([LOGICAL_WIDTH, logicalHeight], orientation);
                 }
-                pdf.addImage(dataUrl, 'PNG', 0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                pdf.addImage(dataUrl, 'PNG', 0, 0, LOGICAL_WIDTH, logicalHeight);
             }
         }
 
         pdf.save('presentation.pdf');
-
-        // Возвращаем исходный активный слайд
         setActiveSlideIndex(originalIndex);
     };
+
+    if (!isAuthenticated) {
+        return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    }
 
     return (
         <>

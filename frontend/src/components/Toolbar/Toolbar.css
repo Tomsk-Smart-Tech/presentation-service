@@ -1,4 +1,3 @@
-/* src/components/Toolbar/Toolbar.css */
 .top-toolbar {
     width: 100%;
     display: flex;
@@ -15,7 +14,6 @@
     gap: 10px;
 }
 
-/* --- ОБЩИЙ СТИЛЬ ДЛЯ ВСЕХ КНОПОК В ТУЛБАРЕ --- */
 .shape-buttons button,
 .play-btn,
 .settings-btn,
@@ -31,7 +29,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0; /* Убираем внутренние отступы, чтобы SVG занимал все место */
+    padding: 0;
 }
 
 .shape-buttons button:hover,
@@ -41,7 +39,6 @@
     background: #6e6e70;
 }
 
-/* --- ПОЗИЦИОНИРОВАНИЕ КНОПОК СПРАВА --- */
 .play-btn {
     position: absolute;
     right: 0;
@@ -49,13 +46,12 @@
 
 .settings-btn {
     position: absolute;
-    right: 50px; /* Сдвигаем левее */
+    right: 50px;
 }
 
-/* --- НОВЫЙ СТИЛЬ ДЛЯ КНОПКИ ЭКСПОРТА --- */
 .export-btn {
     position: absolute;
-    right: 100px; /* Ставим левее настроек */
+    right: 100px;
     font-weight: bold;
     font-size: 14px;
 }

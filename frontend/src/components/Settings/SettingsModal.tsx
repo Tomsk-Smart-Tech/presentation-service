@@ -1,4 +1,3 @@
-// src/components/Settings/SettingsModal.tsx
 import React from 'react';
 import './SettingsModal.css';
 

@@ -1,29 +1,16 @@
-/* src/components/Sidebar/Sidebar.css */
-
-/* ==========================================================================
-   ОБЩАЯ СТРУКТУРА ЛЕВОГО САЙДБАРА
-   ========================================================================== */
 
 .left-sidebar > .panel {
-    /* Делим пространство 50/50 между панелью слайдов и панелью свойств */
     flex: 1;
-    min-height: 0; /* Техническое свойство для корректной работы overflow */
+    min-height: 0;
 }
 
 .panel {
     background-color: #252526;
     border-radius: 8px;
-    /* Уменьшаем вертикальные отступы, чтобы убрать лишнее пространство */
     padding: 5px 15px;
     box-sizing: border-box;
 }
 
-
-/* ==========================================================================
-   ПАНЕЛЬ СЛАЙДОВ (SlidesPanel)
-   ========================================================================== */
-
-/* Делаем панель flex-контейнером, чтобы список мог растянуться */
 .left-sidebar > .panel:first-child {
     display: flex;
     flex-direction: column;
@@ -31,12 +18,12 @@
 
 .panel-header {
     display: flex;
-    justify-content: flex-start; /* <-- ИЗМЕНЯЕМ НА ЭТО */
+    justify-content: flex-start;
     gap: 130px;
     align-items: center;
     margin-bottom: 0px;
     padding: 0 0 0px 10px;
-    flex-shrink: 0; /* Запрещаем шапке сжиматься */
+    flex-shrink: 0;
 }
 
 .add-btn {
@@ -66,9 +53,8 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-grow: 1; /* Занимает все доступное место */
-    overflow-y: auto; /* Включаем прокрутку */
-    /*padding-right: 5px; !* Добавляем "воздуха" справа *!*/
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 .slide-item {
@@ -85,23 +71,18 @@
     background-color: #555;
 }
 .slide-item.active {
-    /*border: 2px solid #3f7195;*/
     background-color: #4b6373;
 }
 
 
-/* ==========================================================================
-   ПАНЕЛЬ СВОЙСТВ (PropertiesPanel)
-   ========================================================================== */
-
 .properties-panel {
-    overflow-y: auto; /* Включаем прокрутку */
-    padding-right: 10px; /* Добавляем "воздуха" справа */
+    overflow-y: auto;
+    padding-right: 10px;
 }
 
 .properties-panel h3 {
     margin-top: 10px;
-    margin-bottom: 10px; /* Увеличим отступ после заголовка для читаемости */
+    margin-bottom: 10px;
 }
 
 .properties-panel .prop-item {
@@ -141,7 +122,6 @@
     gap: 5px;
 }
 
-/* Стили для кнопок управления слоями */
 .properties-panel .prop-group-buttons {
     display: flex;
     gap: 10px;
@@ -159,7 +139,6 @@
     background-color: #6e6e70;
 }
 
-/* Стиль для кнопки удаления объекта */
 .delete-button {
     width: 100%;
     background-color: #b83333;
@@ -176,16 +155,12 @@
 }
 
 
-/* ==========================================================================
-   СКРЫТИЕ СКРОЛЛБАРА (для обеих панелей)
-   ========================================================================== */
-
 .slides-list,
 .properties-panel {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 .slides-list::-webkit-scrollbar,
 .properties-panel::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
 }

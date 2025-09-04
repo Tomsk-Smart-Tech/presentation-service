@@ -1,4 +1,3 @@
-// src/components/Canvas/URLImage.tsx
 import React, { useEffect, useState } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import { ImageShape } from '../../types';

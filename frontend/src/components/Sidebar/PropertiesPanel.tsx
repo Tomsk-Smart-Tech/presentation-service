@@ -1,4 +1,3 @@
-// src/components/Sidebar/PropertiesPanel.tsx
 import React from 'react';
 import './Sidebar.css';
 import { Shape, TextShape } from '../../types';

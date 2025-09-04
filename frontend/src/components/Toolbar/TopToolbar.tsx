@@ -1,4 +1,3 @@
-// src/components/Toolbar/TopToolbar.tsx
 import React, { useRef } from 'react';
 import './Toolbar.css';
 

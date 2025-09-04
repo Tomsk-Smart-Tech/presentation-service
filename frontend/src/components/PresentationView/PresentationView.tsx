@@ -1,4 +1,3 @@
-// src/components/PresentationView/PresentationView.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Stage, Layer, Rect, Ellipse, RegularPolygon, Text, Group } from 'react-konva';
 import { Slide, Shape } from '../../types';
@@ -13,7 +12,6 @@ interface PresentationViewProps {
     aspectRatio: string;
 }
 
-// Вспомогательный хук для отслеживания размера окна
 const useWindowSize = () => {
     const [size, setSize] = useState({
         width: window.innerWidth,
@@ -71,11 +69,8 @@ export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationV
 
     const scale = slideSize.width / LOGICAL_WIDTH;
 
-    // --- 👇 НОВЫЙ КОД ---
-    // Рассчитываем логическую высоту для clipFunc
     const [ratioW, ratioH] = aspectRatio.split(':').map(Number);
     const LOGICAL_HEIGHT = LOGICAL_WIDTH / (ratioW / ratioH);
-    // --- КОНЕЦ НОВОГО КОДА ---
 
     return (
         <div className="presentation-overlay">
@@ -87,13 +82,9 @@ export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationV
                         <Group
                             scaleX={scale}
                             scaleY={scale}
-                            // --- 👇 ГЛАВНОЕ ИЗМЕНЕНИЕ ---
-                            // Эта функция создает маску в виде прямоугольника
-                            // по логическим размерам слайда.
                             clipFunc={(ctx) => {
                                 ctx.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
                             }}
-                            // --- КОНЕЦ ГЛАВНОГО ИЗМЕНЕНИЯ ---
                         >
                             {activeSlide.shapes.map((shape: Shape) => {
                                 const commonProps = { ...shape, draggable: false };

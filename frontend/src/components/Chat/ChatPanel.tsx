@@ -6,7 +6,7 @@ export const ChatPanel = () => {
         <div className="chat-panel">
             <h3 className="chat-header">Чат с ИИ ассистентом</h3>
             <div className="chat-messages">
-                {/* Сообщения будут здесь */}
+                {}
             </div>
             <div className="chat-input">
                 <input type="text" placeholder="Введите запрос" />

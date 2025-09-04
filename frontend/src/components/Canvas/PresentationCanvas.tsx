@@ -1,4 +1,3 @@
-// src/components/Canvas/PresentationCanvas.tsx
 import React, { useRef, useEffect, useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Stage, Layer, Rect, Text, Transformer, Ellipse, RegularPolygon, Group } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
@@ -77,10 +76,8 @@ export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProp
             <div className="canvas-container" ref={containerRef}>
                 <Stage ref={stageRef} width={size.width} height={size.height} onMouseDown={checkDeselect} onTouchStart={checkDeselect}>
                     <Layer>
-                        {/* Эта группа содержит только белый фон, она не масштабируется */}
                         <Rect {...slideProps} fill="white" cornerRadius={8} name="slide-background" />
-
-                        {/* Эта группа содержит все фигуры и масштабируется под размер холста */}
+                        {}
                         <Group x={slideProps.x} y={slideProps.y} scaleX={scale} scaleY={scale} clipFunc={(ctx) => { ctx.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT)}}>
                             {shapes.map((shape) => {
                                 const commonProps = {
