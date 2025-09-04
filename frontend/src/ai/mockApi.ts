@@ -46,7 +46,7 @@ export const mockAiApiCall = (prompt: string): Promise<Slide[]> => {
                     fontSize: 58,
                     fill: '#007acc',
                     rotation: 0,
-                    fontFamily: 'Verdana', // <-- ДОБАВЛЕНО
+                    fontFamily: 'Verdana',
                 },
                 {
                     id: uuidv4(),

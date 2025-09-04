@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './Login.css';
-import users from '../../users.json';
+import { loginUser } from '../../services/api';
 
 interface LoginPageProps {
     onLoginSuccess: () => void;
@@ -10,15 +10,25 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        const user = users.find(u => u.username === username);
-        if (user && user.password === password) {
-            setError('');
-            onLoginSuccess();
-        } else {
-            setError('Неверный логин или пароль');
+        setError('');
+        setLoading(true);
+
+        try {
+            const data = await loginUser(username, password);
+            if (data && data.role) {
+                onLoginSuccess();
+            } else {
+                setError('Неверный ответ от сервера');
+                console.log(data);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -28,7 +38,6 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                 <h1>SMART SLIDES</h1>
             </header>
             <main className="welcome-main">
-
                 <div className="welcome-info">
                     <h2>Создавайте презентации будущего.</h2>
                     <p>
@@ -51,6 +60,7 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Логин"
                             className="login-input"
+                            disabled={loading}
                         />
                         <input
                             type="password"
@@ -58,9 +68,10 @@ export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Пароль"
                             className="login-input"
+                            disabled={loading}
                         />
-                        <button type="submit" className="login-button">
-                            Войти
+                        <button type="submit" className="login-button" disabled={loading}>
+                            {loading ? 'Вход...' : 'Войти'}
                         </button>
                         {error && <p className="login-error">{error}</p>}
                     </form>

@@ -46,6 +46,7 @@ export const TopToolbar = ({
         </svg>
     );
 
+    // @ts-ignore
     return (
         <div className="top-toolbar">
             <div className="shape-buttons">
