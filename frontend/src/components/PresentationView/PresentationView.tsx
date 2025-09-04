@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Stage, Layer, Rect, Ellipse, RegularPolygon, Text, Group } from 'react-konva';
-import { Slide, Shape, TextShape, ImageShape } from '../../types';
+// import { Slide, Shape, TextShape, ImageShape } from '../../types';
+import { Slide, TextShape, ImageShape } from '../../types'; // Убираем 'Shape'
 import './PresentationView.css';
 import { URLImage } from '../Canvas/URLImage';
 

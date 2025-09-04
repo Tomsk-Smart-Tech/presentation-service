@@ -1,0 +1,41 @@
+.notification-container {
+    position: fixed;
+    /* --- ИЗМЕНЕНИЯ ЗДЕСЬ --- */
+    /* 1. Позиционируем относительно верхнего края */
+    top: 12px;
+
+    /* 2. Центрируем по горизонтали */
+    left: 50%;
+
+    /* 3. Смещаем обратно на половину ширины, чтобы выровнять по центру */
+    /* Начальное положение для анимации (чуть выше) */
+    transform: translate(-50%, -150%);
+
+    /* --- Остальные стили --- */
+    padding: 16px 24px;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+
+    /* Анимация появления и исчезновения */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.notification-container.visible {
+    opacity: 1;
+    /* Финальное положение для анимации (плавно опускается на место) */
+    transform: translate(-50%, 0);
+}
+
+/* Стили для разных типов уведомлений */
+.notification-container.error {
+    background-color: #d32f2f; /* Красный для ошибок */
+}
+
+.notification-container.success {
+    background-color: #388e3c; /* Зеленый для успеха */
+}

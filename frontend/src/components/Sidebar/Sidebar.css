@@ -178,15 +178,17 @@
 /* === Стили для панели шаблонов === */
 
 .templates-panel {
-    margin-top: 24px; /* Отступ от панели свойств сверху */
+    margin-top: 4px; /* Отступ от панели свойств сверху */
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .templates-panel h3 {
+    margin-top:  12px;
     margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #3c3c3c; /* Темная граница для темной темы */
+    padding-bottom: 12px;
+    /*border-bottom: 1px solid #3c3c3c; !* Темная граница для темной темы *!*/
     color: #ccc; /* Основной цвет текста */
 }
 

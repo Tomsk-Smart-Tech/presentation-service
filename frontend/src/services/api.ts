@@ -1,4 +1,4 @@
-import { Slide } from "../types";
+// import { Slide } from "../types";
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 

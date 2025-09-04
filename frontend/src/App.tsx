@@ -15,10 +15,10 @@ import { transformAiResponseToSlides } from './services/dataTransformer';
 import { Shape, Slide } from './types';
 import { TemplatesPanel } from './components/Sidebar/TemplatesPanel';
 import { AiInputBar } from './components/AiInput/AiInputBar';
+import { Notification, NotificationProps } from './components/Notification/Notification';
 
 const LOGICAL_WIDTH = 1280;
 
-// Вспомогательная функция для асинхронной загрузки изображений для PDF экспорта
 const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -38,20 +38,29 @@ function App() {
     const [slideAspectRatio, setSlideAspectRatio] = useState('16:9');
     const [isPresenting, setIsPresenting] = useState(false);
     const [isLoadingAi, setIsLoadingAi] = useState(false);
+    const [notification, setNotification] = useState<Omit<NotificationProps, 'onClose'> | null>(null);
     const stageRef = useRef<Konva.Stage>(null);
     const jsonInputRef = useRef<HTMLInputElement>(null);
     const activeSlide = slides[activeSlideIndex];
     const selectedShape = activeSlide?.shapes.find((shape) => shape.id === selectedId);
 
-    const handleLoginSuccess = () => setIsAuthenticated(true);
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setNotification({ message, type });
+    };
+
+    const handleLoginSuccess = () => {
+        setIsAuthenticated(true);
+        showNotification('Вход выполнен успешно!', 'success');
+    };
 
     const applyPresentationState = (newSlides: Slide[]) => {
         if (newSlides && newSlides.length > 0) {
             setSlides(newSlides);
             setActiveSlideIndex(0);
             setSelectedId(null);
+            showNotification('Презентация успешно загружена!', 'success');
         } else {
-            alert("Не удалось создать слайды из полученных данных.");
+            showNotification('Ошибка: Не удалось создать слайды из полученных данных.', 'error');
         }
     };
 
@@ -86,7 +95,6 @@ function App() {
         setActiveSlideIndex(newSlides.length - 1);
     }, [slides]);
 
-
     const deleteSlide = useCallback((idToDelete: string) => {
         if (slides.length <= 1) return;
         const newSlides = slides.filter((slide) => slide.id !== idToDelete);
@@ -109,7 +117,7 @@ function App() {
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }
         setSlides(slides => slides.map((slide, index) => index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide));
-    }, [activeSlideIndex, slideAspectRatio, slides, activeSlideIndex]);
+    }, [activeSlideIndex, slideAspectRatio]);
 
     const updateShape = useCallback((shapeId: string, newAttrs: Partial<Shape>) => {
         setSlides(slides => slides.map((slide, index) => {
@@ -166,17 +174,19 @@ function App() {
     const handleImportJSON = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const result = e.target?.result;
                 if (typeof result === 'string') {
                     const parsedData = JSON.parse(result);
-                    const slidesToProcess = Array.isArray(parsedData) ? parsedData : parsedData.slides;
-                    applyPresentationState(slidesToProcess);
+                    const newSlides = transformAiResponseToSlides(parsedData);
+                    applyPresentationState(newSlides);
                 }
             } catch (error) {
-                alert('Ошибка при чтении файла. Убедитесь, что это корректный JSON.');
+                console.error("Ошибка импорта JSON:", error);
+                showNotification('Ошибка при чтении файла. Убедитесь, что это корректный JSON.', 'error');
             }
         };
         reader.readAsText(file);
@@ -196,12 +206,7 @@ function App() {
             container.style.display = 'none';
             document.body.appendChild(container);
 
-            const stage = new Konva.Stage({
-                container: container,
-                width: LOGICAL_WIDTH,
-                height: logicalHeight,
-            });
-
+            const stage = new Konva.Stage({ container, width: LOGICAL_WIDTH, height: logicalHeight });
             const layer = new Konva.Layer();
             layer.add(new Konva.Rect({ x: 0, y: 0, width: LOGICAL_WIDTH, height: logicalHeight, fill: 'white' }));
             stage.add(layer);
@@ -214,18 +219,10 @@ function App() {
             for (const shape of slide.shapes) {
                 let konvaShape;
                 switch (shape.type) {
-                    case 'rect':
-                        konvaShape = new Konva.Rect(shape);
-                        break;
-                    case 'circle':
-                        konvaShape = new Konva.Ellipse({ ...shape, radiusX: shape.width / 2, radiusY: shape.height / 2 });
-                        break;
-                    case 'triangle':
-                        konvaShape = new Konva.RegularPolygon({ ...shape, sides: 3, radius: shape.height / 2, scaleX: shape.width / shape.height });
-                        break;
-                    case 'text':
-                        konvaShape = new Konva.Text({ ...shape, verticalAlign: 'middle' });
-                        break;
+                    case 'rect': konvaShape = new Konva.Rect(shape); break;
+                    case 'circle': konvaShape = new Konva.Ellipse({ ...shape, radiusX: shape.width / 2, radiusY: shape.height / 2 }); break;
+                    case 'triangle': konvaShape = new Konva.RegularPolygon({ ...shape, sides: 3, radius: shape.height / 2, scaleX: shape.width / shape.height }); break;
+                    case 'text': konvaShape = new Konva.Text({ ...shape, verticalAlign: 'middle' }); break;
                     case 'image':
                         const imgElement = imagesMap.get((shape as any).src);
                         if (imgElement) {
@@ -259,8 +256,9 @@ function App() {
             const newSlides = transformAiResponseToSlides(serverResponse);
             applyPresentationState(newSlides);
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Произошла ошибка при генерации презентации.";
+            showNotification(errorMessage, 'error');
             console.error("AI Generation Error:", error);
-            alert(error instanceof Error ? error.message : "Произошла ошибка при генерации презентации.");
         } finally {
             setIsLoadingAi(false);
         }
@@ -305,6 +303,7 @@ function App() {
                         onExportJSON={handleExportJSON}
                         onImportJSON={() => jsonInputRef.current?.click()}
                     />
+                    <input type="file" ref={jsonInputRef} style={{ display: 'none' }} accept="application/json" onChange={handleImportJSON} />
                     <PresentationCanvas
                         ref={stageRef}
                         shapes={activeSlide?.shapes || []}
@@ -321,6 +320,14 @@ function App() {
             </div>
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} currentAspectRatio={slideAspectRatio} onAspectRatioChange={setSlideAspectRatio} />
             {isPresenting && <PresentationView slides={slides} onClose={() => setIsPresenting(false)} aspectRatio={slideAspectRatio} />}
+
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </>
     );
 }

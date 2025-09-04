@@ -14,7 +14,6 @@ interface PresentationCanvasProps {
     onUpdate: (id: string, newAttrs: Partial<Shape>) => void;
     aspectRatio: string;
 }
-
 export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProps>(
     ({ shapes, selectedId, onSelect, onUpdate, aspectRatio }, ref) => {
         const stageRef = useRef<Konva.Stage>(null);
@@ -50,7 +49,7 @@ export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProp
                 slideWidth = containerHeight * targetRatio;
             }
             return { width: slideWidth, height: slideHeight, x: (size.width - slideWidth) / 2, y: (size.height - slideHeight) / 2 };
-        }, [size.width, size.height, aspectRatio, ratioW, ratioH]);
+        }, [size.width, size.height, ratioW, ratioH]); // <-- ИЗМЕНЕНО: aspectRatio заменен на ratioW и ratioH
 
         useEffect(() => {
             if (!trRef.current || !stageRef.current) return;
