@@ -24,7 +24,6 @@ export interface TriangleShape extends BaseShape {
     height: number;
 }
 
-// FIX: Добавляем 'height' в TextShape, чтобы все фигуры имели размеры
 export interface TextShape extends BaseShape {
     type: 'text';
     text: string;

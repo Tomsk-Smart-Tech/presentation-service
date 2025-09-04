@@ -1,4 +1,3 @@
-// src/types.ts
 export interface BaseShape {
     id: string;
     x: number;

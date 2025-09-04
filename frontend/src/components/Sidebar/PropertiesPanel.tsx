@@ -2,8 +2,6 @@ import React from 'react';
 import './Sidebar.css';
 import { Shape, TextShape } from '../../types';
 
-// Вспомогательная функция для измерения ширины текста.
-// Мы используем 2D-контекст HTML-канваса для точного расчета.
 let canvasContext: CanvasRenderingContext2D | null = null;
 const getTextWidth = (text: string, fontSize: number, fontFamily: string) => {
     if (!canvasContext) {
@@ -14,9 +12,8 @@ const getTextWidth = (text: string, fontSize: number, fontFamily: string) => {
         canvasContext.font = `${fontSize}px ${fontFamily}`;
         return canvasContext.measureText(text).width;
     }
-    return text.length * fontSize * 0.6; // Fallback
+    return text.length * fontSize * 0.6;
 };
-
 
 interface PropertiesPanelProps {
     shape: Shape | undefined;
@@ -38,21 +35,15 @@ export const PropertiesPanel = ({ shape, onUpdate, onDelete, onMove }: Propertie
         onUpdate(shape.id, { [e.target.name]: e.target.value });
     };
 
-    // Специальный обработчик для изменения текста, который также меняет ширину
     const handleTextContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newText = e.target.value;
         const textShape = shape as TextShape;
-
-        // Рассчитываем новую ширину на основе текста, размера и семейства шрифта
         const newWidth = getTextWidth(newText, textShape.fontSize, textShape.fontFamily);
-
-        // Обновляем и текст, и ширину. Добавляем небольшой запас.
         onUpdate(shape.id, {
             text: newText,
             width: newWidth + textShape.fontSize * 0.5,
         });
     };
-
 
     return (
         <div className="panel properties-panel">
@@ -83,7 +74,6 @@ export const PropertiesPanel = ({ shape, onUpdate, onDelete, onMove }: Propertie
                     </div>
                     <div className="prop-group">
                         <div className="prop-item"><label>Размер</label><input type="number" name="fontSize" value={(shape as TextShape).fontSize} onChange={handleNumberChange} /></div>
-                        {/* --- НОВЫЙ ЭЛЕМЕНТ: ВЫБОР ШРИФТА --- */}
                         <div className="prop-item"><label>Шрифт</label>
                             <select name="fontFamily" value={(shape as TextShape).fontFamily} onChange={handlePropertyChange}>
                                 <option value="Arial">Arial</option>

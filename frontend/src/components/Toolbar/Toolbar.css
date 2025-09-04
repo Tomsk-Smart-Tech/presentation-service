@@ -1,8 +1,7 @@
-/* src/components/Toolbar/Toolbar.css */
 .top-toolbar {
     width: 100%;
     display: flex;
-    justify-content: space-between; /* Расталкивает блоки по краям */
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
@@ -20,7 +19,6 @@
     gap: 10px;
 }
 
-/* Общий стиль для всех кнопок в тулбаре */
 .shape-buttons button,
 .action-buttons button {
     background: #555;
@@ -30,7 +28,7 @@
     height: 40px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 20px; /* Базовый размер для иконок */
+    font-size: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,6 +48,5 @@
 .export-btn {
     font-weight: 600;
     font-size: 14px;
-    /* --- 👇 ИЗМЕНЕНИЕ ЗДЕСЬ --- */
-    width: 120px; /* Делаем кнопку шире, чтобы текст помещался с отступами */
+    width: 120px;
 }

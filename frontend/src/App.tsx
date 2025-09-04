@@ -3,7 +3,6 @@ import './App.css';
 import { v4 as uuidv4 } from 'uuid';
 import Konva from 'konva';
 import jsPDF from 'jspdf';
-
 import { LoginPage } from './components/Login/LoginPage';
 import { SlidesPanel } from './components/Sidebar/SlidesPanel';
 import { PropertiesPanel } from './components/Sidebar/PropertiesPanel';
@@ -12,13 +11,12 @@ import { PresentationCanvas } from './components/Canvas/PresentationCanvas';
 import { ChatPanel } from './components/Chat/ChatPanel';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import { PresentationView } from './components/PresentationView/PresentationView';
-import { mockAiApiCall } from './ai/mockApi'; // Наша имитация AI
+import { mockAiApiCall } from './ai/mockApi';
 import { Shape, Slide } from './types';
 
 const LOGICAL_WIDTH = 1280;
 
 function App() {
-
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [slides, setSlides] = useState<Slide[]>([{ id: uuidv4(), shapes: [] }]);
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -27,10 +25,8 @@ function App() {
     const [slideAspectRatio, setSlideAspectRatio] = useState('16:9');
     const [isPresenting, setIsPresenting] = useState(false);
     const [isLoadingAi, setIsLoadingAi] = useState(false);
-
     const stageRef = useRef<Konva.Stage>(null);
     const jsonInputRef = useRef<HTMLInputElement>(null);
-
     const activeSlide = slides[activeSlideIndex];
     const selectedShape = activeSlide?.shapes.find((shape) => shape.id === selectedId);
 
@@ -63,32 +59,24 @@ function App() {
     const addShape = useCallback((type: 'rect' | 'circle' | 'triangle' | 'text' | 'image', payload?: any) => {
         const [ratioW, ratioH] = slideAspectRatio.split(':').map(Number);
         const logicalHeight = LOGICAL_WIDTH / (ratioW / ratioH);
-        const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 75, y: logicalHeight / 2 - 50, rotation: 0 };
+        const commonProps = { id: uuidv4(), x: LOGICAL_WIDTH / 2 - 150, y: logicalHeight / 2 - 100, rotation: 0 };
         let newShape: Shape;
-
         switch (type) {
-            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#1c25d1' }; break;
-            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#1c25d1' }; break;
-            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#1c25d1' }; break;
+            case 'rect': newShape = { ...commonProps, type, width: 150, height: 100, fill: '#8BC34A' }; break;
+            case 'circle': newShape = { ...commonProps, type, width: 120, height: 120, fill: '#2196F3' }; break;
+            case 'triangle': newShape = { ...commonProps, type, width: 120, height: 100, fill: '#FFC107' }; break;
             case 'text':
                 const fontSize = 48;
-                // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
-                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#000000', fontFamily: 'Arial' };
-                break;
+                newShape = { ...commonProps, type, text: 'Новый текст', fontSize, width: 300, height: fontSize * 1.2, fill: '#673AB7', fontFamily: 'Arial' }; break;
             case 'image': newShape = { ...commonProps, type, ...payload, fill: '' }; break;
         }
-        setSlides(slides => slides.map((slide, index) =>
-            index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide
-        ));
+        setSlides(slides => slides.map((slide, index) => index === activeSlideIndex ? { ...slide, shapes: [...slide.shapes, newShape] } : slide));
     }, [activeSlideIndex, slideAspectRatio]);
 
     const updateShape = useCallback((shapeId: string, newAttrs: Partial<Shape>) => {
         setSlides(slides => slides.map((slide, index) => {
             if (index === activeSlideIndex) {
-                return { ...slide, shapes: slide.shapes.map((shape) =>
-                        shape.id === shapeId ? { ...shape, ...newAttrs } as Shape : shape
-                    ),
-                };
+                return { ...slide, shapes: slide.shapes.map((shape) => shape.id === shapeId ? { ...shape, ...newAttrs } as Shape : shape) };
             }
             return slide;
         }));
@@ -110,10 +98,8 @@ function App() {
             const slide = newSlides[activeSlideIndex];
             const index = slide.shapes.findIndex(s => s.id === shapeId);
             if (index === -1) return slides;
-
             const newShapes = [...slide.shapes];
             const [shape] = newShapes.splice(index, 1);
-
             if (direction === 'forward') {
                 newShapes.splice(Math.min(index + 1, newShapes.length), 0, shape);
             } else {
@@ -159,19 +145,15 @@ function App() {
 
     const handleExportPDF = async () => {
         if (!stageRef.current) return;
-
         const [ratioW, ratioH] = slideAspectRatio.split(':').map(Number);
         const logicalHeight = LOGICAL_WIDTH / (ratioW / ratioH);
         const orientation = ratioW > ratioH ? 'l' : 'p';
         const pdf = new jsPDF(orientation, 'px', [LOGICAL_WIDTH, logicalHeight]);
-
         const originalIndex = activeSlideIndex;
         setSelectedId(null);
-
         for (let i = 0; i < slides.length; i++) {
             setActiveSlideIndex(i);
             await new Promise(resolve => setTimeout(resolve, 100));
-
             const stage = stageRef.current;
             if (stage) {
                 const dataUrl = stage.toDataURL({ pixelRatio: 2 });
@@ -181,7 +163,6 @@ function App() {
                 pdf.addImage(dataUrl, 'PNG', 0, 0, LOGICAL_WIDTH, logicalHeight);
             }
         }
-
         pdf.save('presentation.pdf');
         setActiveSlideIndex(originalIndex);
     };
@@ -212,7 +193,6 @@ function App() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedId, deleteShape]);
-
 
     if (!isAuthenticated) {
         return <LoginPage onLoginSuccess={handleLoginSuccess} />;
