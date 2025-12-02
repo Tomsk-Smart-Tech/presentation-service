@@ -15,13 +15,28 @@ const getTextWidth = (text: string, fontSize: number, fontFamily: string) => {
     return text.length * fontSize * 0.6;
 };
 
+/**
+ * Props for the PropertiesPanel component.
+ */
 interface PropertiesPanelProps {
+    /** The currently selected shape. If undefined, no properties are displayed. */
     shape: Shape | undefined;
+    /** Callback to update properties of the selected shape. */
     onUpdate: (id: string, newAttrs: Partial<Shape>) => void;
+    /** Callback to delete the selected shape. */
     onDelete: (id: string) => void;
+    /** Callback to change the z-index order of the selected shape. */
     onMove: (id: string, direction: 'forward' | 'backward') => void;
 }
 
+/**
+ * A sidebar panel for editing the properties of the selected shape.
+ *
+ * Allows modification of position, size, color, rotation, and text-specific attributes.
+ *
+ * @param {PropertiesPanelProps} props - The component props.
+ * @returns {JSX.Element} The rendered PropertiesPanel component.
+ */
 export const PropertiesPanel = ({ shape, onUpdate, onDelete, onMove }: PropertiesPanelProps) => {
     if (!shape) {
         return ( <div className="panel properties-panel"><h3>Свойства объекта</h3><p>Ничего не выбрано</p></div> );

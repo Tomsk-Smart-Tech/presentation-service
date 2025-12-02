@@ -1,81 +1,95 @@
-# SmartSlides: AI-конструктор презентаций для учителей
+# SmartSlides: AI-Powered Presentation Builder
 
-## 1. Кейс: Проблема и вызовы
+**SmartSlides** is an innovative web application designed to help teachers and educators create visual presentations quickly and effortlessly using Generative AI. By simply describing a topic, users can generate a structured presentation with slides, text, and visual suggestions, which can then be further customized in a powerful built-in editor.
 
-**"Разработка конструктора презентаций для учителей с поддержкой видео и ИИ-генерации слайдов"**
+## 🚀 Key Features
 
-Современные педагоги тратят огромное количество времени на подготовку учебных материалов. Создание качественной, визуально привлекательной и методически верной презентации — это трудоемкий процесс, требующий навыков работы с несколькими программами, поиска контента и его структурирования.
+*   **AI-Powered Generation:** Transform a simple text prompt into a full presentation structure (JSON) using a fine-tuned LLM (Qwen 3 8B) hosted on NVIDIA Triton Inference Server.
+*   **Interactive Editor:** A rich canvas editor (built with React and Konva.js) allowing users to add, move, resize, and style text, shapes, and images.
+*   **Templates:** Ready-made slide templates (Title, Content, Image, Final) for quick creation.
+*   **Presentation Mode:** A built-in full-screen viewer to present slides directly from the browser.
+*   **Export Options:** Export presentations to **PDF** for sharing or **JSON** for saving and editing later.
+*   **Authentication:** Simple role-based login system.
 
-**Ключевые проблемы, с которыми сталкиваются учителя:**
-*   **Высокие временные затраты:** Рутинные задачи по созданию слайдов отнимают время от более важных аспектов преподавания.
-*   **"Боязнь белого листа":** Сложность в генерации идей и структуры для новой презентации.
-*   **Технические барьеры:** Необходимость осваивать сложные программы для добавления мультимедиа (видео, аудио) и последующего экспорта в нужные форматы.
-*   **Недостаток контента:** Трудности с поиском релевантных изображений и написанием лаконичных текстов для слайдов.
+## 📂 Project Structure
 
-## 2. Предлагаемое решение: SmartSlides
+The repository is organized into three main components:
 
-**SmartSlides** — это инновационный веб-сервис, который решает эти проблемы, используя мощь генеративного ИИ и современный технологический стек. Мы предлагаем не просто редактор, а интеллектуального ассистента, который берет на себя самую сложную часть работы.
+*   **`backend/`**: A Python FastAPI application that acts as the middleware. It handles user authentication and proxies requests to the AI inference server.
+    *   *Documentation:* [Backend README](backend/README.md)
+*   **`frontend/`**: A React + TypeScript single-page application. It provides the user interface for the editor, AI chat, and presentation viewer.
+    *   *Documentation:* [Frontend README](frontend/README.md)
+*   **`triton/`**: Configuration and setup for the NVIDIA Triton Inference Server, including the model repository structure.
 
-### Концепция решения
-Мы создаем интуитивно понятную веб-платформу, где учитель может за несколько минут сгенерировать основу для целой презентации, просто описав тему текстом. AI-ассистент предложит структуру, напишет тексты для слайдов и подберет ключевые слова для визуализаций, а мощный редактор позволит "довести до блеска" результат и добавить мультимедиа.
+## 🛠️ Setup and Installation
 
-### План реализации (Roadmap)
+### Prerequisites
 
-1.  **Фундамент (Core Functionality):**
-    *   **Разработка редактора слайдов:** Создание интерфейса на React и Kanva.js для добавления и стилизации базовых элементов (текст, изображения, фигуры).
-    *   **Интеграция ИИ-ядра:** Настройка сервера NVIDIA Triton с моделью Qwen 3 и создание API на FastAPI для обработки запросов к ИИ.
+*   **Docker & Docker Compose** (Recommended for full stack deployment)
+*   **Node.js** (for local frontend development)
+*   **Python 3.8+** (for local backend development)
+*   **NVIDIA GPU** (Required for running the Triton Inference Server with acceleration)
 
-2.  **Интеллектуальная генерация (AI Features):**
-    *   **Реализация чата с AI-ассистентом:** Пользователь вводит тему, а система генерирует готовую структуру презентации в формате JSON.
-    *   **Динамическая отрисовка:** Фронтенд парсит полученный JSON и автоматически создает слайды с контентом на холсте.
+### Quick Start (using Docker Compose)
 
-3.  **Расширенные возможности (Advanced Features):**
-    *   **Поддержка мультимедиа:** Внедрение функционала для вставки видео (по ссылке и загрузкой) и аудио.
-    *   **Универсальный экспорт:** Реализация экспорта готовых презентаций в форматы **PDF** и **PPTX**.
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-folder>
+    ```
 
-4.  **Администрирование и кастомизация:**
-    *   **Разработка панели администратора:** Создание интерфейса для управления шаблонами и гибкой настройки параметров ИИ-модели (system prompt, temperature и т.д.).
+2.  **Start the services:**
+    ```bash
+    docker-compose up --build
+    ```
+    This will start the Backend, Frontend, and Triton Server.
 
-## 3. Наши преимущества и инновационность
+3.  **Access the Application:**
+    *   Frontend: `http://localhost:3000`
+    *   Backend API: `http://localhost:8001`
+    *   Triton Server: `http://localhost:8000`
 
-Что позволит нам создать продукт, превосходящий аналоги, и почему наша работа заслуживает высокой оценки:
+### Manual Setup (Local Development)
 
-*   **Современный и производительный стек:**
-    Мы используем **NVIDIA Triton Inference Server**, промышленный стандарт для высоконагруженных AI-сервисов. Это обеспечивает максимальную скорость и эффективность работы модели Qwen 3 8B, что критически важно для комфортного пользовательского опыта.
+#### 1. Backend
 
-*   **Микросервисная архитектура и DevOps:**
-    Проект изначально строится на Docker и автоматизирован с помощью GitHub Actions. Это не просто набор скриптов, а полноценный CI/CD-пайплайн, который гарантирует стабильность, масштабируемость и высокое качество кода с первого дня разработки.
+Navigate to the `backend` directory and follow the instructions in [backend/README.md](backend/README.md).
 
-*   **Глубокая интеграция ИИ, а не поверхностная:**
-    Мы не просто генерируем текст. Наш AI-ассистент создает **структурированные данные (JSON)**, описывающие всю презентацию — от заголовков до подсказок по визуализации. Это позволяет нам гибко управлять отображением, создавать сложные шаблоны и легко внедрять новые AI-функции в будущем. Помимо этого, ассистент имеет возможность редактирования отдельных частей презентации, начиная с текстовых полей и заканчивая целым слайдом.
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
 
-*   **Фокус на образовательной специфике:**
-    Возможность для администраторов тонко настраивать системные промпты и параметры модели позволит адаптировать генерируемый контент под конкретные образовательные стандарты и возрастные группы, делая наш инструмент по-настоящему полезным для учителей.
+#### 2. Frontend
 
-## ✨ Текущий статус проекта
-На данный момент в проекте реализованы два ключевых экрана, которые составляют основу MVP (минимально жизнеспособного продукта) и демонстрируют основной функционал.
+Navigate to the `frontend` directory and follow the instructions in [frontend/README.md](frontend/README.md).
 
-1. Приветственный экран (Страница входа)
-Полноценная посадочная страница, которая знакомит пользователя с проектом и предоставляет доступ к редактору.
+```bash
+cd frontend
+npm install
+npm start
+```
 
-*   **Информационный блок: Краткое описание возможностей приложения и его преимуществ.**
-*   **Форма аутентификации: Безопасный вход в систему для начала работы.**
-*   **Современный дизайн: Приятный и интуитивно понятный пользовательский интерфейс.**
-<img width="1912" height="954" alt="image" src="https://github.com/user-attachments/assets/a38fa609-8d08-4ee8-a831-0439714a1ae5" />
+#### 3. Triton Inference Server
 
+Ensure you have the Triton Inference Server running and accessible at the URL specified in your backend configuration (default: `localhost:8000`).
 
-2. Редактор презентаций
-Интерактивное рабочее пространство, где происходит вся магия создания и редактирования слайдов.
+## 📚 Documentation
 
-*   **Добавление фигур (прямоугольник, круг, треугольник), текста и изображений.**
-*   **Интерактивное выделение, перемещение, масштабирование и вращение объектов.**
-*   **Панель управления слайдами: Удобное добавление, удаление и переключение между слайдами.**
-*   **Инспектор свойств: Детальная настройка выбранного объекта — изменение координат, размеров, цвета, текста и шрифта.**
-*   **Функции экспорта: Возможность сохранять готовую презентацию в форматах PDF и JSON.**
-<img width="1912" height="954" alt="image" src="https://github.com/user-attachments/assets/1b7bb4b8-9709-4726-b4b4-ffd18e3e2247" />
+Detailed documentation for the source code, including function descriptions and API details, can be found within the code files (docstrings/JSDoc) and in the component-specific READMEs linked above.
 
-3. ИИ-ассистент
+*   **Backend API:** defined in `backend/main.py`
+*   **Frontend Components:** located in `frontend/src/components/`
 
-**Текущий статус: Бэкенд для ИИ-генерации подготовлен**
+## 🤝 Contributing
 
-На данный момент полностью развернут и готов к интеграции высокопроизводительный сервис для генерации контента. В качестве основы используется **NVIDIA Triton Inference Server**, запущенный в Docker-контейнере. Для поддержки GGUF-моделей был написан кастомный Python-бэкенд, позволяющий Triton'у обслуживать state-of-the-art LLM, такие как **Qwen3-8B**. Весь пайплайн настроен на максимальное использование GPU-ускорения, благодаря чему достигнута высокая скорость генерации, необходимая для комфортной работы пользователей. Сервис предоставляет стабильный HTTP API и ожидает интеграции с основным бэкендом приложения. Настроена связь между frontend и backend с помощью python fastapi, работают основные запросы, например авторизация.
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a Pull Request.
+
+## 📄 License
+
+[License Name] - see the LICENSE file for details.

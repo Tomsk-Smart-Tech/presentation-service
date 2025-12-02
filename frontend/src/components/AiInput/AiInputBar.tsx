@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import './AiInputBar.css';
 
+/**
+ * Props for the AiInputBar component.
+ */
 interface AiInputBarProps {
+    /** Callback to execute when a command is sent. */
     onSendCommand: (command: string) => void;
+    /** Whether the AI is currently processing a request. */
     isLoading: boolean;
 }
 
+/**
+ * A floating input bar for sending prompts to the AI assistant.
+ *
+ * @param {AiInputBarProps} props - The component props.
+ * @returns {JSX.Element} The rendered AiInputBar component.
+ */
 export const AiInputBar = ({ onSendCommand, isLoading }: AiInputBarProps) => {
     const [message, setMessage] = useState('');
 

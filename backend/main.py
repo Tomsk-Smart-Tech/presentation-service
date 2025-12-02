@@ -66,13 +66,32 @@ app.add_middleware(
 
 
 class UserPrompt(BaseModel):
+    """
+    Model representing a user's prompt for slide generation.
+
+    Attributes:
+        prompt (str): The text description of the presentation topic.
+    """
     prompt: str
 
 class UserLogin(BaseModel):
+    """
+    Model representing user login credentials.
+
+    Attributes:
+        username (str): The user's username.
+        password (str): The user's password.
+    """
     username: str
     password: str
 
 class LoginResponse(BaseModel):
+    """
+    Model representing the response to a successful login.
+
+    Attributes:
+        role (str): The role of the authenticated user.
+    """
     role: str
 
 
@@ -108,6 +127,23 @@ class LoginResponse(BaseModel):
 #         raise e
 
 def get_prediction_from_triton(prompt_text: str) -> dict:
+    """
+    Sends a text prompt to the Triton Inference Server and returns the generated result.
+
+    This function constructs a request payload, sends it to the Triton server,
+    and processes the response to extract the generated JSON data.
+
+    Args:
+        prompt_text (str): The input text prompt describing the presentation topic.
+
+    Returns:
+        dict: The generated presentation structure in dictionary format.
+
+    Raises:
+        ConnectionError: If there is a network error when communicating with Triton.
+        HTTPException: If the model returns invalid JSON or other processing errors occur.
+        ValueError: If the expected output is not found in the Triton response.
+    """
     url = f"http://{TRITON_URL}/v2/models/{MODEL_NAME}/infer"
 
     payload = {
@@ -162,8 +198,19 @@ def get_prediction_from_triton(prompt_text: str) -> dict:
 @app.post("/api/auth/login", response_model=LoginResponse)
 async def login_for_user(request: UserLogin):
     """
-    эндпоинт для авторизации пользователя.
-    принимает username и password, возвращает роль в случае успеха
+    Authenticate a user.
+
+    Validates the provided username and password against the local user database.
+    If successful, returns the user's role.
+
+    Args:
+        request (UserLogin): The login credentials containing username and password.
+
+    Returns:
+        dict: A dictionary containing the user's role.
+
+    Raises:
+        HTTPException: If authentication fails (401 Unauthorized).
     """
     logger.info(f"Попытка входа для пользователя: {request.username}")
 
@@ -182,7 +229,21 @@ async def login_for_user(request: UserLogin):
 @app.post("/api/ai/generate-slides")
 async def generate_slides(request: UserPrompt):
     """
-    принимаю промпт, отправляю его модели и она возвращает сгенерированный json
+    Generate presentation slides based on a user prompt.
+
+    Accepts a text prompt, sends it to the AI model via the Triton server,
+    and returns the generated presentation structure as JSON.
+
+    Args:
+        request (UserPrompt): The object containing the user's prompt.
+
+    Returns:
+        dict: The generated presentation data.
+
+    Raises:
+        HTTPException:
+            - 503 if the Triton service is unavailable.
+            - 500 if an internal server error occurs.
     """
     logger.info(f"Получен запрос на /generate/ с промптом: '{request.prompt}'")
     try:
@@ -196,7 +257,17 @@ async def generate_slides(request: UserPrompt):
 
 @app.get("/health/")
 async def health_check():
-    """эндпоинт для проверки, что сервер жив и может подключиться к Triton"""
+    """
+    Health check endpoint.
+
+    Checks if the backend server is running and if it can communicate with the Triton Inference Server.
+
+    Returns:
+        dict: A status dictionary indicating the health of the service and Triton connection.
+
+    Raises:
+        HTTPException: 503 if the connection to the Triton Inference Server fails.
+    """
     if not triton_client or not triton_client.is_server_live():
         raise HTTPException(status_code=503, detail="Не удалось подключиться к Triton Inference Server.")
     return {"status": "ok", "triton_connection": "live"}
