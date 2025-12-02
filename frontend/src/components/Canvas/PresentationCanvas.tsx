@@ -7,14 +7,33 @@ import { URLImage } from './URLImage';
 
 const LOGICAL_WIDTH = 1280;
 
+/**
+ * Props for the PresentationCanvas component.
+ */
 interface PresentationCanvasProps {
+    /** List of shapes to be rendered on the canvas. */
     shapes: Shape[];
+    /** The ID of the currently selected shape, or null if none is selected. */
     selectedId: string | null;
+    /** Callback to handle shape selection. */
     onSelect: (id: string | null) => void;
+    /** Callback to update shape attributes (position, size, etc.). */
     onUpdate: (id: string, newAttrs: Partial<Shape>) => void;
+    /** The aspect ratio of the canvas (e.g., "16:9"). */
     aspectRatio: string;
 }
 
+/**
+ * The main drawing canvas for the presentation editor.
+ *
+ * Uses `react-konva` to render shapes and handles user interactions like
+ * selection, dragging, and resizing (via Transformer).
+ * It automatically scales the slide content to fit the available container space.
+ *
+ * @param {PresentationCanvasProps} props - The component props.
+ * @param {React.Ref<Konva.Stage>} ref - Ref to the underlying Konva Stage.
+ * @returns {JSX.Element} The rendered PresentationCanvas component.
+ */
 export const PresentationCanvas = forwardRef<Konva.Stage, PresentationCanvasProps>(
     ({ shapes, selectedId, onSelect, onUpdate, aspectRatio }, ref) => {
         const stageRef = useRef<Konva.Stage>(null);

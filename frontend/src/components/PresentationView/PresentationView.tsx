@@ -6,12 +6,22 @@ import { URLImage } from '../Canvas/URLImage';
 
 const LOGICAL_WIDTH = 1280;
 
+/**
+ * Props for the PresentationView component.
+ */
 interface PresentationViewProps {
+    /** The list of slides to present. */
     slides: Slide[];
+    /** Callback to exit presentation mode. */
     onClose: () => void;
+    /** The aspect ratio of the slides. */
     aspectRatio: string;
 }
 
+/**
+ * A custom hook to track the window dimensions.
+ * @returns {{width: number, height: number}} The current window width and height.
+ */
 const useWindowSize = () => {
     const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
     useEffect(() => {
@@ -24,6 +34,15 @@ const useWindowSize = () => {
     return size;
 };
 
+/**
+ * A full-screen view for presenting the slides.
+ *
+ * Handles slide navigation (keyboard arrows, on-screen buttons) and scaling
+ * the slide content to fit the screen while maintaining aspect ratio.
+ *
+ * @param {PresentationViewProps} props - The component props.
+ * @returns {JSX.Element} The rendered PresentationView component.
+ */
 export const PresentationView = ({ slides, onClose, aspectRatio }: PresentationViewProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const activeSlide = slides[currentIndex];

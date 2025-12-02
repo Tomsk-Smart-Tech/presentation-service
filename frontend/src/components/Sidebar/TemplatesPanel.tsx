@@ -1,10 +1,22 @@
 import React from 'react';
 import './Sidebar.css';
 
+/**
+ * Props for the TemplatesPanel component.
+ */
 interface TemplatesPanelProps {
+    /** Callback to add a new slide based on a selected template type. */
     onAddTemplate: (templateType: 'title' | 'content' | 'image' | 'final') => void;
 }
 
+/**
+ * A sidebar panel displaying available slide templates.
+ *
+ * Allows the user to quickly add new slides with predefined layouts (Title, Content, Image, Final).
+ *
+ * @param {TemplatesPanelProps} props - The component props.
+ * @returns {JSX.Element} The rendered TemplatesPanel component.
+ */
 export const TemplatesPanel = ({ onAddTemplate }: TemplatesPanelProps) => {
     return (
         <div className="panel templates-panel">

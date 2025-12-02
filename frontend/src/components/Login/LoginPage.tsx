@@ -2,10 +2,22 @@ import React, { useState } from 'react';
 import './Login.css';
 import { loginUser } from '../../services/api';
 
+/**
+ * Props for the LoginPage component.
+ */
 interface LoginPageProps {
+    /** Callback function to be called upon successful login. */
     onLoginSuccess: () => void;
 }
 
+/**
+ * The login page component.
+ *
+ * Provides a form for user authentication and displays introductory information about the application.
+ *
+ * @param {LoginPageProps} props - The component props.
+ * @returns {JSX.Element} The rendered LoginPage component.
+ */
 export const LoginPage = ({ onLoginSuccess }: LoginPageProps) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

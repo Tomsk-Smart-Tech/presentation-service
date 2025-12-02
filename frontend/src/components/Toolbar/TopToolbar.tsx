@@ -1,17 +1,34 @@
 import React, { useRef } from 'react';
 import './Toolbar.css';
 
+/**
+ * Props for the TopToolbar component.
+ */
 interface TopToolbarProps {
+    /** Callback to add a shape of the specified type. */
     onAddShape: (type: 'rect' | 'circle' | 'triangle' | 'text') => void;
+    /** Callback to add an image to the slide. */
     onAddImage: (src: string, width: number, height: number) => void;
+    /** Callback to open the settings modal. */
     onOpenSettings: () => void;
+    /** Callback to start the presentation mode. */
     onStartPresentation: () => void;
+    /** Callback to export the presentation as PDF. */
     onExportPDF: () => void;
+    /** Callback to export the presentation as JSON. */
     onExportJSON: () => void;
+    /** Callback to trigger the JSON import process. */
     onImportJSON: () => void;
     // onExportPPTX убрали
 }
 
+/**
+ * The top toolbar component containing controls for adding shapes, images,
+ * and performing presentation-level actions (export, settings, play).
+ *
+ * @param {TopToolbarProps} props - The component props.
+ * @returns {JSX.Element} The rendered TopToolbar component.
+ */
 export const TopToolbar = ({
                                onAddShape,
                                onAddImage,
